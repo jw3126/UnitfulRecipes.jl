@@ -5,6 +5,18 @@
 [![Codecov](https://codecov.io/gh/jw3126/UnitfulRecipes.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jw3126/UnitfulRecipes.jl)
 [![Coveralls](https://coveralls.io/repos/github/jw3126/UnitfulRecipes.jl/badge.svg?branch=master)](https://coveralls.io/github/jw3126/UnitfulRecipes.jl?branch=master)
 
+# Usage
+
+```julia
+using Unitful: cm, kg
+using UnitfulRecipes
+using Plots
+
+xs = randn(10)*cm
+ys = randn(10)*kg
+plot(xs, ys)
+```
+
 # Acknowledgements
 
 Inspired by [UnitfulPlots.jl](https://github.com/PainterQubits/UnitfulPlots.jl).
