@@ -1,5 +1,77 @@
 module UnitfulRecipes
 
-greet() = print("Hello World!")
+using RecipesBase: @recipe
+using Unitful:Quantity, unit, uconvert, NoUnits
+
+struct UnitFormatter{U}
+    unit::U
+end
+
+(fmt::UnitFormatter)(value) = string(value, fmt.unit)
+
+
+
+key_lims(axis) = Symbol("xyz"[axis], "lims")
+key_formatter(axis) = Symbol("xyz"[axis], "formatter")
+key_unit(axis) = Symbol("xyz"[axis], "unit")
+
+function stripunit(x, u)
+    uconvert.(NoUnits, x/u)
+end
+
+function recipe!(attr, arr)
+    resolve_axis!(attr, arr, 2)
+end
+
+function recipe!(attr, arrs...)
+    ntuple(length(arrs)) do axis
+        arr = arrs[axis]
+        resolve_axis!(attr, arr, axis)
+    end
+end
+
+function resolve_axis!(attr, arr::AbstractArray{<: Quantity}, axis::Int)
+    key = key_unit(axis)
+    if haskey(attr, key)
+        u = attr[key] 
+        delete!(attr, key)
+    else
+        u = unit(first(arr))
+    end
+    arr = stripunit.(arr, u)
+    
+    key = key_lims(axis)
+    if haskey(attr, key)
+        lims = attr[key]
+        if lims isa NTuple{2, Quantity}
+            attr[key] = stripunit.(lims, u)
+        end
+    end
+    
+    key = key_formatter(axis)
+    attr[key] = UnitFormatter(u)
+    return arr
+end
+
+function resolve_axis!(attr, arr::AbstractArray, axis::Int)
+    arr
+end
+
+const Q = AbstractArray{<: Quantity}
+const A = AbstractArray
+
+@recipe plot(ys::Q) = recipe!(plotattributes, ys)
+
+@recipe plot(xs::A, ys::Q) = recipe!(plotattributes, xs, ys)
+@recipe plot(xs::Q, ys::A) = recipe!(plotattributes, xs, ys)
+@recipe plot(xs::Q, ys::Q) = recipe!(plotattributes, xs, ys)
+
+@recipe plot(xs::A, ys::A, zs::Q) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::A, ys::Q, zs::A) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::A, ys::Q, zs::Q) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::Q, ys::A, zs::A) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::Q, ys::A, zs::Q) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::Q, ys::Q, zs::A) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(xs::Q, ys::Q, zs::Q) = recipe!(plotattributes, xs, ys, zs)
 
 end # module

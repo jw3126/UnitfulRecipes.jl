@@ -3,6 +3,10 @@ uuid = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 authors = ["Jan Weidner"]
 version = "0.1.0"
 
+[deps]
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
 [compat]
 julia = "1.2"
 
