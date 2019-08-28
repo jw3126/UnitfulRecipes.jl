@@ -1,6 +1,6 @@
 module UnitfulRecipes
 
-using RecipesBase: @recipe
+using RecipesBase
 using Unitful:Quantity, unit, uconvert, NoUnits
 
 struct UnitFormatter{U}
@@ -8,8 +8,6 @@ struct UnitFormatter{U}
 end
 
 (fmt::UnitFormatter)(value) = string(value, fmt.unit)
-
-
 
 key_lims(axis) = Symbol("xyz"[axis], "lims")
 key_formatter(axis) = Symbol("xyz"[axis], "formatter")
