@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful:Quantity, unit, uconvert, NoUnits
+using Unitful:Quantity, unit, uconvert, ustrip
 
 struct UnitFormatter{U}
     unit::U
@@ -12,10 +12,6 @@ end
 key_lims(axis) = Symbol("xyz"[axis], "lims")
 key_formatter(axis) = Symbol("xyz"[axis], "formatter")
 key_unit(axis) = Symbol("xyz"[axis], "unit")
-
-function stripunit(x, u)
-    uconvert.(NoUnits, x/u)
-end
 
 function recipe!(attr, arr)
     resolve_axis!(attr, arr, 2)
@@ -36,13 +32,13 @@ function resolve_axis!(attr, arr::AbstractArray{<: Quantity}, axis::Int)
     else
         u = unit(first(arr))
     end
-    arr = stripunit.(arr, u)
+    arr = ustrip.(u, arr)
     
     key = key_lims(axis)
     if haskey(attr, key)
         lims = attr[key]
         if lims isa NTuple{2, Quantity}
-            attr[key] = stripunit.(lims, u)
+            attr[key] = ustrip.(u, lims)
         end
     end
     
