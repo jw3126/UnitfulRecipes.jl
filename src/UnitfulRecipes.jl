@@ -67,5 +67,6 @@ const A = AbstractArray
 @recipe plot(xs::Q, ys::A, zs::Q) = recipe!(plotattributes, xs, ys, zs)
 @recipe plot(xs::Q, ys::Q, zs::A) = recipe!(plotattributes, xs, ys, zs)
 @recipe plot(xs::Q, ys::Q, zs::Q) = recipe!(plotattributes, xs, ys, zs)
+@recipe plot(f::Function, xs::Q) = recipe!(plotattributes, xs, f.(xs))
 
 end # module
