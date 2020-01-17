@@ -3,14 +3,8 @@ module UnitfulRecipes
 using RecipesBase
 using Unitful:Quantity, unit, uconvert, ustrip
 
-struct UnitFormatter{U}
-    unit::U
-end
-
-(fmt::UnitFormatter)(value) = string(value, fmt.unit)
-
 key_lims(axis) = Symbol("xyz"[axis], "lims")
-key_formatter(axis) = Symbol("xyz"[axis], "formatter")
+key_label(axis) = Symbol("xyz"[axis], "guide")
 key_unit(axis) = Symbol("xyz"[axis], "unit")
 
 function recipe!(attr, arr)
@@ -24,16 +18,25 @@ function recipe!(attr, arrs...)
     end
 end
 
-function resolve_axis!(attr, arr::AbstractArray{<: Quantity}, axis::Int)
+"""
+    resolve_axis!(attr, arr::AbstractArray{T}, axis::Int)) where {T<:Quantity}
+
+Return `arr` data after converting it to axis unit and stripping units.
+
+Mutates `att` by converting/removing unitful attributes.
+"""
+function resolve_axis!(attr, arr::AbstractArray{T}, axis::Int) where {T<:Quantity}
+    # convert (if user-provided unit) and strip unit from data
     key = key_unit(axis)
     if haskey(attr, key)
-        u = attr[key] 
+        u = attr[key] # 
         delete!(attr, key)
     else
-        u = unit(first(arr))
+        u = unit(T)
     end
     arr = ustrip.(u, arr)
-    
+
+    # convert and strip unit from lims
     key = key_lims(axis)
     if haskey(attr, key)
         lims = attr[key]
@@ -41,17 +44,19 @@ function resolve_axis!(attr, arr::AbstractArray{<: Quantity}, axis::Int)
             attr[key] = ustrip.(u, lims)
         end
     end
-    
-    key = key_formatter(axis)
-    attr[key] = UnitFormatter(u)
+
+    # get axis label and append unit
+    key = key_label(axis)
+    if haskey(attr, key)
+        attr[key] = string(attr[key], " ($(string(u)))")
+    else
+        attr[key] = string(u)
+    end
     return arr
 end
+resolve_axis!(attr, arr::AbstractArray, axis::Int) = arr # fallback
 
-function resolve_axis!(attr, arr::AbstractArray, axis::Int)
-    arr
-end
-
-const Q = AbstractArray{<: Quantity}
+const Q = AbstractArray{<:Quantity}
 const A = AbstractArray
 
 @recipe plot(ys::Q) = recipe!(plotattributes, ys)
