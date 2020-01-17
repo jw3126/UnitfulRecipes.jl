@@ -23,7 +23,7 @@ end
 
 Return `arr` data after converting it to axis unit and stripping units.
 
-Mutates `att` by converting/removing unitful attributes.
+Mutates `attr` by converting/removing unitful attributes.
 """
 function resolve_axis!(attr, arr::AbstractArray{T}, axis::Int) where {T<:Quantity}
     # convert (if user-provided unit) and strip unit from data
