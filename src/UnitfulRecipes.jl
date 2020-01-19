@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful:Quantity, unit, uconvert, ustrip
+using Unitful: Quantity, unit, ustrip
 
 key_lims(axis) = Symbol("xyz"[axis], "lims")
 key_label(axis) = Symbol("xyz"[axis], "guide")
