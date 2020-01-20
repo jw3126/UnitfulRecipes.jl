@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful:Quantity, unit, uconvert, ustrip
+using Unitful: Quantity, unit, ustrip
 
 key_lims(axis) = Symbol("xyz"[axis], "lims")
 key_label(axis) = Symbol("xyz"[axis], "guide")
@@ -28,12 +28,7 @@ Mutates `attr` by converting/removing unitful attributes.
 function resolve_axis!(attr, arr::AbstractArray{T}, axis::Int) where {T<:Quantity}
     # convert (if user-provided unit) and strip unit from data
     key = key_unit(axis)
-    if haskey(attr, key)
-        u = attr[key] # 
-        delete!(attr, key)
-    else
-        u = unit(T)
-    end
+    u = pop!(attr, key, unit(T))
     arr = ustrip.(u, arr)
 
     # convert and strip unit from lims
@@ -59,19 +54,22 @@ resolve_axis!(attr, arr::AbstractArray, axis::Int) = arr # fallback
 const Q = AbstractArray{<:Quantity}
 const A = AbstractArray
 
-@recipe plot(ys::Q) = recipe!(plotattributes, ys)
+@recipe f(ys::Q) = recipe!(plotattributes, ys)
 
-@recipe plot(xs::A, ys::Q) = recipe!(plotattributes, xs, ys)
-@recipe plot(xs::Q, ys::A) = recipe!(plotattributes, xs, ys)
-@recipe plot(xs::Q, ys::Q) = recipe!(plotattributes, xs, ys)
+@recipe f(xs::A, ys::Q) = recipe!(plotattributes, xs, ys)
+@recipe f(xs::Q, ys::A) = recipe!(plotattributes, xs, ys)
+@recipe f(xs::Q, ys::Q) = recipe!(plotattributes, xs, ys)
 
-@recipe plot(xs::A, ys::A, zs::Q) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::A, ys::Q, zs::A) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::A, ys::Q, zs::Q) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::Q, ys::A, zs::A) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::Q, ys::A, zs::Q) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::Q, ys::Q, zs::A) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(xs::Q, ys::Q, zs::Q) = recipe!(plotattributes, xs, ys, zs)
-@recipe plot(f::Function, xs::Q) = recipe!(plotattributes, xs, f.(xs))
+@recipe f(fun::Function, xs::Q) = recipe!(plotattributes, xs, fun.(xs))
+
+# UNitful/unitless combinations for 3 arguments
+AAQ(N) = :(AbstractArray{T,$N} where {T<:Quantity})
+AA(N) = :(AbstractArray{T,$N} where {T})
+for N in 1:2
+    for Ts in collect(Iterators.product(fill([AAQ(N), AA(N)], 3)...))[1:end-1]
+        Tx, Ty, Tz = Ts
+        @eval @recipe f(x::$Tx, y::$Ty, z::$Tz) = recipe!(plotattributes, x, y, z)
+    end
+end
 
 end # module
