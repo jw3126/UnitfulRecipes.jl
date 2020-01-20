@@ -12,6 +12,11 @@ function recipe!(attr, arr)
 end
 
 function recipe!(attr, arrs...)
+    if haskey(attr, :marker_z)
+        u = unit(eltype(attr[:marker_z]))
+        attr[:marker_z] = ustrip.(u, attr[:marker_z])
+        attr[:colorbar_title] = string(u)
+    end
     ntuple(length(arrs)) do axis
         arr = arrs[axis]
         resolve_axis!(attr, arr, axis)
@@ -42,11 +47,15 @@ function resolve_axis!(attr, arr::AbstractArray{T}, axis::Int) where {T<:Quantit
 
     # get axis label and append unit
     key = key_label(axis)
+    ckey = (axis==3) ? :colorbar_title : key
     if haskey(attr, key)
         attr[key] = string(attr[key], " ($(string(u)))")
+        attr[ckey] = attr[key]
     else
         attr[key] = string(u)
+        attr[ckey] = attr[key]
     end
+
     return arr
 end
 resolve_axis!(attr, arr::AbstractArray, axis::Int) = arr # fallback
@@ -65,9 +74,9 @@ const A = AbstractArray
 # UNitful/unitless combinations for 3 arguments
 AAQ(N) = :(AbstractArray{T,$N} where {T<:Quantity})
 AA(N) = :(AbstractArray{T,$N} where {T})
-for N in 1:2
-    for Ts in collect(Iterators.product(fill([AAQ(N), AA(N)], 3)...))[1:end-1]
-        Tx, Ty, Tz = Ts
+for Nz in 1:2, Nxy in 1:Nz
+    for Ts in collect(Iterators.product(fill([AAQ, AA], 3)...))[1:end-1]
+        Tx, Ty, Tz = Ts[1](Nxy), Ts[2](Nxy), Ts[3](Nz)
         @eval @recipe f(x::$Tx, y::$Ty, z::$Tz) = recipe!(plotattributes, x, y, z)
     end
 end
