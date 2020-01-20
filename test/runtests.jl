@@ -52,8 +52,12 @@ end
     @test !haskey(attr, :zguide)
 end
 
-@testset "Plots" begin
-    x, y, z = randn(10), randn(10), randn(10)
+@testset "Plots (data as $dtype)" for dtype in [:Vectors, :Arrays]
+    if dtype == :Vectors 
+        x, y, z = randn(10), randn(10), randn(10)
+    else
+        x, y, z = randn(10,2), randn(10,2), randn(10,2)
+    end
 
     @testset "One array" begin
         @test plot(x*m)                    isa Plots.Plot
@@ -76,19 +80,19 @@ end
     end
 
     @testset "Three arrays" begin
-        @test plot(x*m, y*s, z*m/s)                        isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, xlabel="x")            isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, xlims=(-1,1))          isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, xlims=(-1,1) .* m)     isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, xunit=u"km")           isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, ylabel="y")            isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, ylims=(-1,1))          isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, ylims=(-1,1) .* s)     isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, yunit=u"ks")           isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, zlabel="z")            isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, zlims=(-1,1))          isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, zlims=(-1,1) .* (m/s)) isa Plots.Plot
-        @test plot(x*m, y*s, z*m/s, zunit=u"km/s")         isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s))                        isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), xlabel="x")            isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), xlims=(-1,1))          isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), xlims=(-1,1) .* m)     isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), xunit=u"km")           isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), ylabel="y")            isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), ylims=(-1,1))          isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), ylims=(-1,1) .* s)     isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), yunit=u"ks")           isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), zlabel="z")            isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), zlims=(-1,1))          isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), zlims=(-1,1) .* (m/s)) isa Plots.Plot
+        @test plot(x*m, y*s, z*(m/s), zunit=u"km/s")         isa Plots.Plot
     end
 
     @testset "Unitful/unitless combinations" begin
