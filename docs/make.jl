@@ -6,7 +6,7 @@ lit = joinpath(@__DIR__, "lit")
 notebooks = joinpath(src, "notebooks")
 
 execute = true # Set to true for executing notebooks and documenter!
-nb = false      # Set to true to generate the notebooks
+nb = true      # Set to true to generate the notebooks
 for (root, _, files) in walkdir(lit), file in files
     splitext(file)[2] == ".jl" || continue
     ipath = joinpath(root, file)
@@ -34,6 +34,7 @@ makedocs(
 # Deploy
 deploydocs(
     repo = "github.com/jw3126/UnitfulRecipes.jl.git",
+    push_preview = true
 )
 
 #=

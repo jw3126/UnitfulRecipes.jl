@@ -16,7 +16,8 @@ Essentially, [UnitfulRecipes.jl](https://github.com/jw3126/UnitfulRecipes.jl) st
 
 Pictures speak louder than words, so we wrote some examples (accessible through the links on the left) for you to get an idea of what this package does or to simply try it out for yourself!
 
-!!! note These examples are available as Jupyter notebooks (through [nbviewer](https://nbviewer.jupyter.org/) or [binder](https://mybinder.org/))!
+!!! note "You can run the examples!"
+    These examples are available as Jupyter notebooks (through [nbviewer](https://nbviewer.jupyter.org/) or [binder](https://mybinder.org/))!
 
 ---
 
