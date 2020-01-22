@@ -6,6 +6,9 @@
   <a href="https://jw3126.github.io/UnitfulRecipes.jl/stable/">
     <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
   </a>
+  <a href="https://jw3126.github.io/UnitfulRecipes.jl/dev/">
+    <img src=https://img.shields.io/badge/docs-dev-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
+  </a>
 </p>
 
 <p>
