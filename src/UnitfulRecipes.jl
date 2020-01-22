@@ -24,7 +24,6 @@ function recipe!(attr, arrs...)
     end
 end
 
-
 function fixscatterattributes!(attr)
     if haskey(attr, :marker_z)
         u = unit(eltype(attr[:marker_z]))
@@ -44,8 +43,6 @@ function ustripattribute!(attr, key)
         attr[key] = ustrip.(u, v)
     end
 end
-
-
 
 
 """
