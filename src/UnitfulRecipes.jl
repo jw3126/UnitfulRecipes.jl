@@ -1,14 +1,14 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip
+using Unitful: Quantity, unit, ustrip, Unitful
 
 const A = AbstractArray
 const V = AbstractVector
 const Q = A{<:Quantity}
 
 key_lims(axis) = Symbol("xyz"[axis], "lims")
-key_label(axis) = Symbol("xyz"[axis], "guide")
+key_guide(axis) = Symbol("xyz"[axis], "guide")
 key_unit(axis) = Symbol("xyz"[axis], "unit")
 
 function recipe!(attr, arr)
@@ -76,23 +76,36 @@ function _resolve_axis!(attr, arr, T, axis)
     end
 
     # get axis label and append unit
-    key = key_label(axis)
-    ustr = string(u)
-    add_unit_if_missing!(attr, key_label(axis), ustr)
+    append_unit_if_needed!(attr, key_guide(axis), u)
 
     # colorbar_title
-    ckey = (axis==3) ? :colorbar_title : key_label(axis)
-    add_unit_if_missing!(attr, ckey, ustr)
+    if axis == 3
+        append_unit_if_needed!(attr, :colorbar_title, u)
+    end
 
     return arr
 end
 
-function add_unit_if_missing!(attr, key, ustr::AbstractString)
-    value = get!(attr, key, ustr)
-    if !occursin(ustr, value)
-        attr[key] = "$value $(ustr)"
+struct Literally
+    content::String
+end
+
+function append_unit_if_needed!(attr, key, u::Unitful.Units)
+    value = get(attr, key, nothing)
+    if value isa Literally
+        attr[key] = value.content
+        return attr
     end
-    attr
+    if u == Unitful.NoUnits
+        return attr
+    end
+    ustr = "[$u]"
+    if value != nothing
+        attr[key] = "$value $(ustr)"
+    else
+        attr[key] = ustr
+    end
+    return attr
 end
 
 @recipe f(ys::Q) = recipe!(plotattributes, ys)
