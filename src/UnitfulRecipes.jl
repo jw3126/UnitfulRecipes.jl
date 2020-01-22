@@ -56,7 +56,7 @@ Return `arr` data after converting it to axis unit and stripping units.
 Mutates `attr` by converting/removing unitful attributes.
 """
 function resolve_axis!(attr, arr::A{T}, axis::Int) where {T<:Quantity}
-    _resolve_axis!(attr, arr, T, axis) 
+    _resolve_axis!(attr, arr, T, axis)
 end
 function resolve_axis!(attr, arrs::A{<:A{T}}, axis::Int) where {T<:Quantity}
     [_resolve_axis!(attr, arr, T, axis) for arr in arrs]
@@ -80,22 +80,23 @@ function _resolve_axis!(attr, arr, T, axis)
 
     # get axis label and append unit
     key = key_label(axis)
-    ckey = (axis==3) ? :colorbar_title : key
     ustr = string(u)
-    if haskey(attr, key) # Append unit (only once) if axis label exists
-        i = findlast(ustr, attr[key])
-        if isnothing(i) || ((last(i)≠length(attr[key])-1) && (last(i)≠length(attr[key])))
-            attr[key] = string(attr[key], " ($ustr)")
-        end
-    else # otherwise add axis label with the unit
-        attr[key] = ustr
-    end
-    attr[ckey] = attr[key] # this probably needs its own if–then block
+    add_unit_if_missing!(attr, key_label(axis), ustr)
+
+    # colorbar_title
+    ckey = (axis==3) ? :colorbar_title : key_label(axis)
+    add_unit_if_missing!(attr, ckey, ustr)
 
     return arr
 end
 
-
+function add_unit_if_missing!(attr, key, ustr::AbstractString)
+    value = get!(attr, key, ustr)
+    if !occursin(ustr, value)
+        attr[key] = "$value $(ustr)"
+    end
+    attr
+end
 
 @recipe f(ys::Q) = recipe!(plotattributes, ys)
 @recipe f(ys::V{<:Q}) = recipe!(plotattributes, ys)
