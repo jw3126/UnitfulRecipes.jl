@@ -1,0 +1,7 @@
+[deps]
+UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[compat]
+julia = "1"
