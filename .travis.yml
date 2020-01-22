@@ -1,19 +1,24 @@
+## Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
-
 os:
   - linux
-  - osx
-  - windows
-
 julia:
-  - 1
+  - 1.0
   - 1.3
   - nightly
+notifications:
+  email: false
+git:
+  depth: 99999999
 
 matrix:
   allow_failures:
-    - julia: nightly
-  fast_finish: true
+  - julia: nightly
+  include:
+      - os: osx
+        julia: 1.0
+      - os: windows
+        julia: 1.0
 
 jobs:
   include:
@@ -26,3 +31,4 @@ jobs:
           Pkg.instantiate();
           include("docs/make.jl");'
       after_success: skip
+
