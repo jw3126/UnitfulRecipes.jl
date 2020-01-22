@@ -1,55 +1,37 @@
-# UnitfulRecipes
+# UnitfulRecipes.jl
 
-[![Build Status](https://travis-ci.com/jw3126/UnitfulRecipes.jl.svg?branch=master)](https://travis-ci.com/jw3126/UnitfulRecipes.jl)
-[![Codecov](https://codecov.io/gh/jw3126/UnitfulRecipes.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jw3126/UnitfulRecipes.jl)
+*for plotting data with units seemlessly in Julia*
 
-# Usage
+<p>
+  <a href="https://jw3126.github.io/UnitfulRecipes.jl/stable/">
+    <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
+  </a>
+</p>
 
-- without providing axis labels
+<p>
+  <a href="https://travis-ci.com/jw3126/UnitfulRecipes.jl">
+    <img alt="Build Status" src="https://img.shields.io/travis/com/jw3126/UnitfulRecipes.jl/master?label=OSX/Linux/Windows&logo=travis&logocolor=white&style=flat-square">
+  </a>
+  <a href="https://codecov.io/gh/jw3126/UnitfulRecipes.jl">
+    <img src="https://img.shields.io/codecov/c/github/jw3126/UnitfulRecipes.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
+  </a>
+</p>
 
-    ```julia
-    using Unitful: m, km, g, kg
-    using UnitfulRecipes, Plots
-    xs = randn(10)*km
-    ys = randn(10)*kg
-    plot(xs, ys)
-    ```
+[UnitfulRecipes.jl](https://github.com/jw3126/UnitfulRecipes.jl) provides recipes for plotting figures ([Plots.jl](https://github.com/JuliaPlots/Plots.jl)) when using data with units ([Unitful.jl](https://github.com/PainterQubits/Unitful.jl)).
 
-    gives
+```julia
+using Unitful, UnitfulRecipes, Plots
+xs = randn(10)*u"km"
+ys = randn(10)*u"kg"
+plot(xs, ys)
+```
 
-    ![example1](https://user-images.githubusercontent.com/4486578/72591885-74a20500-3955-11ea-9552-489451bd01fd.png)
+should give something like
 
-- providing an axis label
+![example1](https://user-images.githubusercontent.com/4486578/72591885-74a20500-3955-11ea-9552-489451bd01fd.png)
 
-    ```julia
-    plot(xs, ys, xlabel="length")
-    ```
+Head over to the [documentation](https://jw3126.github.io/UnitfulRecipes.jl/stable/) for more examples!
 
-    gives
-
-    ![example2](https://user-images.githubusercontent.com/4486578/72591886-74a20500-3955-11ea-880b-ae34a67fb1ff.png)
-
-
-- converting units on the fly
-
-    ```julia
-    plot(xs, ys, xlabel="length", xunit=m)
-    ```
-
-    gives
-
-    ![example3](https://user-images.githubusercontent.com/4486578/72591888-74a20500-3955-11ea-9630-344700694002.png)
-
-- setting axis limits with units
-
-    ```julia
-    plot(xs, ys, xlabel="length", xunit=m, ylims=(-1000,2000).*g)
-    ```
-
-    gives
-
-    ![example4](https://user-images.githubusercontent.com/4486578/72591890-753a9b80-3955-11ea-8aa3-0b89ea42c6ec.png)
-
-# Acknowledgements
+### Acknowledgements
 
 Inspired by [UnitfulPlots.jl](https://github.com/PainterQubits/UnitfulPlots.jl).

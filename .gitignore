@@ -3,5 +3,11 @@
 *.jl.mem
 *html
 .DS_Store
-/Manifest.toml
-/dev/
+Manifest.toml
+dev/
+
+# for docs
+docs/Manifest.toml
+docs/build/
+docs/src/examples/
+docs/src/notebooks/
