@@ -3,16 +3,12 @@ using Documenter, Literate, UnitfulRecipes
 # generate tutorials and how-to guides using Literate
 src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "lit")
-notebooks = joinpath(src, "notebooks")
 
-execute = true # Set to true for executing notebooks and documenter!
-nb = true      # Set to true to generate the notebooks
 for (root, _, files) in walkdir(lit), file in files
     splitext(file)[2] == ".jl" || continue
     ipath = joinpath(root, file)
     opath = splitdir(replace(ipath, lit=>src))[1]
-    Literate.markdown(ipath, opath, documenter = execute)
-    nb && Literate.notebook(ipath, notebooks, execute = execute)
+    Literate.markdown(ipath, opath, documenter = true)
 end
 
 # Documentation structure
