@@ -108,7 +108,7 @@ Base.isvalid(n::S, i::Integer) = isvalid(n.content, i)
 Base.pointer(n::S) = pointer(n.content)
 Base.pointer(n::S, i::Integer) = pointer(n.content, i)
 # macro for easy-to-use interface?
-# i.e., so that `U"foo"` creates `ProtectedString("foo")`
+# i.e., so that `P"foo"` creates `ProtectedString("foo")`
 macro P_str(s)
     return ProtectedString(s)
 end
@@ -117,11 +117,11 @@ function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
     ustr = string(u)
     if !(label isa ProtectedString) && (u != Unitful.NoUnits)
-        if isnothing(label) # if no label then put just the unit
+        if label isa Nothing # if no label then put just the unit
             attr[key] = ustr
         else # otherwise append it, only if it is not already there
             i = findlast(ustr, label)
-            if isnothing(i) || ((last(i)≠length(label)-1) && (last(i)≠length(label)))
+            if (i isa Nothing) || ((last(i)≠length(label)-1) && (last(i)≠length(label)))
                 attr[key] = string(label, " ($ustr)")
             end
         end
