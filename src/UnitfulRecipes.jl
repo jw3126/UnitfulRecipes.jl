@@ -2,6 +2,7 @@ module UnitfulRecipes
 
 using RecipesBase
 using Unitful: Quantity, unit, ustrip, Unitful
+export @P_str
 
 const A = AbstractArray
 const V = AbstractVector
