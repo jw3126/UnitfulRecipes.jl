@@ -15,9 +15,8 @@ notifications:
   email: false
 git:
   depth: 99999999
-after_success:
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
+codecov: true
 
 jobs:
   include:
