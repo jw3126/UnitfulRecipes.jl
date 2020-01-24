@@ -86,20 +86,21 @@ function _resolve_axis!(attr, arr, T, axis)
     return arr
 end
 
+abstract type AbstractProtectedString <: AbstractString end
 """
     ProtectedString
 
 Wrapper around a `String` to "protect" it from `recipe!` passes.
-
-TODO: Decide the name. I suggest `ProtectedString`.
-Note that I think the name is not too important at this stage,
-because we can use a string macro (see `P_str` below)
 """
-struct ProtectedString <: AbstractString
+struct ProtectedString <: AbstractProtectedString
     content::String
 end
+struct UnitfulString{U} <: AbstractProtectedString
+    content::String
+    unit::U
+end
 # Minimum required AbstractString interface to work with Plots?
-const S = ProtectedString
+const S = AbstractProtectedString
 Base.iterate(n::S) = iterate(n.content)
 Base.iterate(n::S, i::Integer) = iterate(n.content, i)
 Base.codeunit(n::S) = codeunit(n.content)
@@ -113,21 +114,31 @@ macro P_str(s)
     return ProtectedString(s)
 end
 
+
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
-    ustr = string(u)
-    if !(label isa ProtectedString) && (u != Unitful.NoUnits)
-        if label isa Nothing # if no label then put just the unit
-            attr[key] = ustr
-        else # otherwise append it, only if it is not already there
-            i = findlast(ustr, label)
-            if (i isa Nothing) || ((last(i)≠length(label)-1) && (last(i)≠length(label)))
-                attr[key] = string(label, " ($ustr)")
-            end
-        end
+    append_unit_if_needed!(attr, key, label, u)
+    return attr
+end
+# dispatch on the type of `label`
+append_unit_if_needed!(attr, key, label::ProtectedString, u) = attr
+function append_unit_if_needed!(attr, key, label::Nothing, u)
+    attr[key] = UnitfulString(string(u), u)
+    return attr
+end
+function append_unit_if_needed!(attr, key, label::UnitfulString, u)
+    (label.unit ≠ u) && error("The unit of $key has changed!")
+    return attr
+end
+function append_unit_if_needed!(attr, key, label::String, u)
+    if label ≠ ""
+        attr[key] = UnitfulString(string(label, " (", u, ")"), u)
     end
     return attr
 end
+
+
+
 
 @recipe f(ys::Q) = recipe!(plotattributes, ys)
 @recipe f(ys::V{<:Q}) = recipe!(plotattributes, ys)
