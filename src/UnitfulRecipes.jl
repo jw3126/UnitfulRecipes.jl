@@ -86,24 +86,45 @@ function _resolve_axis!(attr, arr, T, axis)
     return arr
 end
 
-struct Literally
+"""
+    ProtectedString
+
+Wrapper around a `String` to "protect" it from `recipe!` passes.
+
+TODO: Decide the name. I suggest `ProtectedString`.
+Note that I think the name is not too important at this stage,
+because we can use a string macro (see `P_str` below)
+"""
+struct ProtectedString <: AbstractString
     content::String
+end
+# Minimum required AbstractString interface to work with Plots?
+const S = ProtectedString
+Base.iterate(n::S) = iterate(n.content)
+Base.iterate(n::S, i::Integer) = iterate(n.content, i)
+Base.codeunit(n::S) = codeunit(n.content)
+Base.ncodeunits(n::S) = ncodeunits(n.content)
+Base.isvalid(n::S, i::Integer) = isvalid(n.content, i)
+Base.pointer(n::S) = pointer(n.content)
+Base.pointer(n::S, i::Integer) = pointer(n.content, i)
+# macro for easy-to-use interface?
+# i.e., so that `U"foo"` creates `ProtectedString("foo")`
+macro P_str(s)
+    return ProtectedString(s)
 end
 
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
-    value = get(attr, key, nothing)
-    if value isa Literally
-        attr[key] = value.content
-        return attr
-    end
-    if u == Unitful.NoUnits
-        return attr
-    end
-    ustr = "[$u]"
-    if value != nothing
-        attr[key] = "$value $(ustr)"
-    else
-        attr[key] = ustr
+    label = get(attr, key, nothing)
+    ustr = string(u)
+    if !(label isa ProtectedString) && (u != Unitful.NoUnits)
+        if isnothing(label) # if no label then put just the unit
+            attr[key] = ustr
+        else # otherwise append it, only if it is not already there
+            i = findlast(ustr, label)
+            if isnothing(i) || ((last(i)≠length(label)-1) && (last(i)≠length(label)))
+                attr[key] = string(label, " ($ustr)")
+            end
+        end
     end
     return attr
 end

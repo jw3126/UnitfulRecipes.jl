@@ -1,6 +1,6 @@
 using Test, Unitful, RecipesBase, Plots
 using Unitful: m, s, cm
-using UnitfulRecipes: recipe!, Literally
+using UnitfulRecipes: recipe!, @P_str
 
 Attributes = Dict{Symbol, Any}
 @testset "One Array" begin
@@ -9,15 +9,15 @@ Attributes = Dict{Symbol, Any}
     ys = ys_val * m
     ys_ret = recipe!(attr, ys)
     @test ys_ret ≈ ys_val
-    @test attr[:yguide] == "[m]"
+    @test attr[:yguide] == "m"
 
-    attr = Attributes(:yguide => Literally("hello"))
+    attr = Attributes(:yguide => P"hello")
     recipe!(attr, ys)
-    @test attr[:yguide] == "hello"
+    @test attr[:yguide].content == "hello"
 
     attr = Attributes(:yguide => "hello")
     recipe!(attr, ys)
-    @test attr[:yguide] == "hello [m]"
+    @test attr[:yguide] == "hello (m)"
 
     attr = Attributes(:yunit => cm)
     ys_ret = recipe!(attr, ys)
