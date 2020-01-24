@@ -87,7 +87,11 @@ end
             @test plot(x*m, y*s, xlabel="x")        isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1) .* m) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, xunit=u"km") isa Plots.Plot
+            if dtype == Symbol("Vectors of vectors") 
+                @test_broken plot(x*m, y*s, xunit=u"km") isa Plots.Plot
+            else
+                @test plot(x*m, y*s, xunit=u"km") isa Plots.Plot
+            end
             @test plot(x*m, y*s, ylabel="y")        isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1) .* s) isa Plots.Plot
