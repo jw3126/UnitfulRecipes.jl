@@ -24,9 +24,17 @@ plot(y)
 
 # ## Axis label
 
-# If you specify an axis label, the unit will be appended to it
+# If you specify an axis label, the unit will be appended to it.
 
 plot(y, ylabel="mass")
+
+# Unless you want it untouched, in which case you can use a "protected" string using the `@P_str` macro.
+
+plot(y, ylabel=P"mass in kilograms")
+
+# Just like with the `label` keyword for legends, no axis label is added if you specify the axis label to be an empty string.
+
+plot(y, ylabel="")
 
 # ## Axis unit
 
