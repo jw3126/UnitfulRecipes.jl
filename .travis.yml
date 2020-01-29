@@ -8,17 +8,15 @@ julia:
   - 1.0
   - 1.3
   - nightly
-matrix:
-  allow_failures:
-    - julia: nightly
-notifications:
-  email: false
-git:
-  depth: 99999999
 
 codecov: true
 
+notifications:
+  email: false
+
 jobs:
+  allow_failures:
+    - julia: nightly
   include:
     - stage: "Documentation"
       julia: 1.3
