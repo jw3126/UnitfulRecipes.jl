@@ -59,12 +59,13 @@ histogram2d(randn(10000) * u"cm", randn(10000) * u"cm", nbins=20)
 
 # ## Line types
 
-linetypes = [:path :steppre :steppost :sticks :scatter]
-n = length(linetypes)
-x = Vector[sort(rand(20)) for i = 1:n] * u"km"
-y = rand(20, n) * u"ms"
-plot(x, y, line=(linetypes, 3), lab=map(string, linetypes), ms=15)
-
+# ```
+# linetypes = [:path :steppre :steppost :sticks :scatter]
+# n = length(linetypes)
+# x = Vector[sort(rand(20)) for i = 1:n] * u"km"
+# y = rand(20, n) * u"ms"
+# plot(x, y, line=(linetypes, 3), lab=map(string, linetypes), ms=15)
+# ```
 
 # ## Line styles
 
