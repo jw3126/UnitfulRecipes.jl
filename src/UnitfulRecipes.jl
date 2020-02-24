@@ -16,7 +16,11 @@ key_unit(axis) = Symbol("xyz"[axis], "unit")
 
 function recipe!(attr, arr)
     fixscatterattributes!(attr)
-    resolve_axis!(attr, arr, 2)
+    if attr[:seriestype] == :histogram
+        resolve_axis!(attr, arr, 1)
+    else
+        resolve_axis!(attr, arr, 2)
+    end
 end
 
 function recipe!(attr, arrs...)
