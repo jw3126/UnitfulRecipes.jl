@@ -74,9 +74,13 @@ plot(x, y, z)
 
 # ## Scatter plots
 
-# for scatter plots
+# You can do scatter plots
 
-scatter(x, y, z)
+scatter(x, y, zcolor=z, clims=(5,20).*unit(eltype(z)))
+
+# and 3D scatter plots too
+
+scatter(x, y, z, zcolor=z)
 
 # ## Contour plots
 

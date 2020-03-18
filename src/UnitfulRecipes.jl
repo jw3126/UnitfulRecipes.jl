@@ -25,6 +25,7 @@ end
 
 function recipe!(attr, arrs...)
     fixscatterattributes!(attr)
+    fixclims!(attr)
     ntuple(length(arrs)) do axis
         arr = arrs[axis]
         resolve_axis!(attr, arr, axis)
@@ -42,6 +43,13 @@ function fixscatterattributes!(attr)
     end
 end
 
+function fixclims!(attr)
+    if haskey(attr, :clims)
+        min, max = attr[:clims]
+        umin, umax = unit(min), unit(max)
+        attr[:clims] = (ustrip(umin, min), ustrip(umax, max))
+    end
+end
 
 function ustripattribute!(attr, key)
     if haskey(attr, key)
