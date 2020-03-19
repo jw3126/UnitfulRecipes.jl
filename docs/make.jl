@@ -5,6 +5,8 @@ src = joinpath(@__DIR__, "src")
 lit = joinpath(@__DIR__, "lit")
 notebooks = joinpath(src, "notebooks")
 
+ENV["GKS_ENCODING"] = "utf-8"
+
 execute = true # Set to true for executing notebooks and documenter!
 nb = true      # Set to true to generate the notebooks
 for (root, _, files) in walkdir(lit), file in files
