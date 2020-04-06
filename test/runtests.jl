@@ -1,68 +1,73 @@
 using Test, Unitful, RecipesBase, Plots
 using Unitful: m, s, cm
-using UnitfulRecipes: recipe!, @P_str
+using UnitfulRecipes
 
-Attributes = Dict{Symbol, Any}
-@testset "One Array" begin
-    attr = Attributes()
-    ys_val = [1, 2.3]
-    ys = ys_val * m
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val
-    @test attr[:yguide] == "m"
+xguide(plt) = plt.subplots[1].attr[:xaxis].plotattributes[:guide]
+yguide(plt) = plt.subplots[1].attr[:yaxis].plotattributes[:guide]
+zguide(plt) = plt.subplots[1].attr[:zaxis].plotattributes[:guide]
+xseries(plt) = plt.series_list[1].plotattributes[:x]
+yseries(plt) = plt.series_list[1].plotattributes[:y]
+zseries(plt) = plt.series_list[1].plotattributes[:z]
 
-    label = P"hello"
-    content = label.content
-    attr = Attributes(:yguide => label)
-    recipe!(attr, ys)
+@testset "plot(y)" begin
+    y = rand(3)m
 
+    @testset "no keyword argument" begin
+        @test yguide(plot(y)) == "m"
+        @test yseries(plot(y)) ≈ ustrip.(y)
+    end
 
-    attr = Attributes(:yguide => "hello")
-    recipe!(attr, ys)
-    @test attr[:yguide] == "hello (m)"
+    @testset "ylabel" begin
+        @test yguide(plot(y, ylabel="hello")) == "hello (m)"
+        @test yguide(plot(y, ylabel=P"hello")) == "hello"
+        @test yguide(plot(y, ylabel="")) == ""
+    end
 
-    attr = Attributes(:yunit => cm)
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val * 100
-    @test !haskey(attr, :yunit)
+    @testset "yunit" begin
+        @test yguide(plot(y, yunit=cm)) == "cm"
+        @test yseries(plot(y, yunit=cm)) ≈ ustrip.(cm, y)
+    end
 
-    attr = Attributes(:ylims => (100cm, 2m))
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val
-    @test attr[:ylims] == (1, 2)
+    @testset "ylims" begin # Using all(lims .≈ lims) because of uncontrolled type conversions?
+        @test all(ylims(plot(y, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-1m,3m))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-100cm,300cm))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-100cm,3m))) .≈ (-1,3))
+    end
+
+    @testset "keyword combinations" begin
+        @test yguide(plot(y, yunit=cm, ylabel="hello")) == "hello (cm)"
+        @test yseries(plot(y, yunit=cm, ylabel="hello")) ≈ ustrip.(cm, y)
+        @test all(ylims(plot(y, yunit=cm, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-100cm,300cm))) .≈ (-100,300))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-100cm,3m))) .≈ (-100,300))
+    end
 end
 
-@testset "Multi Array" begin
-    attr = Attributes()
-    xs_val = randn(3)
-    ys_val = randn(3)
-    xu = s
-    yu = m/s
-    xs = xs_val * xu
-    ys = ys_val * yu
-    xs_ret, ys_ret = recipe!(attr, xs_val, ys)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test !haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
+@testset "plot(x,y)" begin
+    x, y = randn(3)m, randn(3)s
 
-    xs_ret, ys_ret = recipe!(attr, xs, ys)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "m"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "s"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+    end
 
-    zs_val = randn(3)
-    xs_ret, ys_ret, zs_ret = recipe!(attr, xs, ys, zs_val)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test zs_ret ≈ zs_val
-    @test haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
-    @test !haskey(attr, :zguide)
+    @testset "labels" begin
+        @test xguide(plot(x, y, xlabel= "hello")) == "hello (m)"
+        @test xguide(plot(x, y, xlabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, ylabel= "hello")) == "hello (s)"
+        @test yguide(plot(x, y, ylabel=P"hello")) == "hello"
+        @test xguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (m)"
+        @test xguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (s)"
+        @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+    end
 end
 
-@testset "Plots" begin
+@testset "Moar plots" begin
     @testset "data as $dtype" for dtype in [:Vectors, :Matrices, Symbol("Vectors of vectors")]
         if dtype == :Vectors
             x, y, z = randn(10), randn(10), randn(10)
