@@ -4,55 +4,33 @@ using RecipesBase
 using Unitful: Quantity, unit, ustrip, Unitful
 export @P_str
 
-#const A = AbstractArray
-#const V = AbstractVector
-#const Q = Quantity
-#const UA = AbstractArray{<:Q, N} where N
-#const UV = AbstractVector{<:Q}
-
+#==========
+Main recipe
+==========#
 
 @recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Quantity}
-    axisletter = plotattributes[:letter]
-    axislabel = Symbol(axisletter, :guide)
-    axislims = Symbol(axisletter, :lims)
-    axisunit = Symbol(axisletter, :unit)
+    # Attribute keys
+    axisletter = plotattributes[:letter]   # x, y, or z
+    axislabel = Symbol(axisletter, :guide) # xguide, yguide, zguide
+    axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
+    axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
+    # Get the unit
     u = pop!(plotattributes, axisunit, unit(eltype(x)))
-    @show u
+    # Fix the attributes: labels, lims, marker/line stuff, etc.
     append_unit_if_needed!(plotattributes, axislabel, u)
     fixlims!(plotattributes, axislims, u)
     fixmarkercolor!(plotattributes)
     fixmarkersize!(plotattributes)
     fixlinecolor!(plotattributes)
+    # Strip the unit
     ustrip.(u, x)
 end
 
 
+#==============
+Attibute fixing
+==============#
 
-
-
-#key_lims(axis) = Symbol("xyz"[axis], "lims")
-#key_guide(axis) = Symbol("xyz"[axis], "guide")
-#key_unit(axis) = Symbol("xyz"[axis], "unit")
-#
-#function recipe!(attr, arr)
-#    fixscatterattributes!(attr)
-#    fixclims!(attr)
-#    if get(attr, :seriestype, nothing) == :histogram
-#        resolve_axis!(attr, arr, 1)
-#    else
-#        resolve_axis!(attr, arr, 2)
-#    end
-#end
-#
-#function recipe!(attr, arrs...)
-#    fixscatterattributes!(attr)
-#    fixclims!(attr)
-#    ntuple(length(arrs)) do axis
-#        arr = arrs[axis]
-#        resolve_axis!(attr, arr, axis)
-#    end
-#end
-#
 function fixmarkercolor!(attr)
     u = ustripattribute!(attr, :marker_z)
     u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
@@ -68,16 +46,7 @@ function fixlims!(attr, key, u)
     end
 end
 
-
-#
-#function fixclims!(attr)
-#    if haskey(attr, :clims)
-#        min, max = attr[:clims]
-#        umin, umax = unit(min), unit(max)
-#        attr[:clims] = (ustrip(umin, min), ustrip(umax, max))
-#    end
-#end
-#
+# strip unit from attribute
 function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
@@ -88,60 +57,13 @@ function ustripattribute!(attr, key)
         return Unitful.NoUnits
     end
 end
-#
-#
-#"""
-#    resolve_axis!(attr, arr, axis)
-#
-#Return `arr` data after converting it to axis unit and stripping units.
-#
-#Mutates `attr` by converting/removing unitful attributes.
-#"""
-#function resolve_axis!(attr, arr::A{T}, axis::Int) where {T<:Quantity}
-#    _resolve_axis!(attr, arr, T, axis)
-#end
-#function resolve_axis!(attr, arrs::A{<:A{T}}, axis::Int) where {T<:Quantity}
-#    [_resolve_axis!(attr, arr, T, axis) for arr in arrs]
-#end
-#resolve_axis!(attr, arr::A, axis::Int) = arr # fallback
-#
-#function _resolve_axis!(attr, arr, T, axis)
-#    # convert (if user-provided unit) and strip unit from data
-#    key = key_unit(axis)
-#    u = pop!(attr, key, unit(T))
-#    arr = ustrip.(u, arr)
-#
-#    # convert and strip unit from lims
-#    key = key_lims(axis)
-#    if haskey(attr, key)
-#        lims = attr[key]
-#        if lims isa NTuple{2, Quantity}
-#            attr[key] = ustrip.(u, lims)
-#        end
-#    end
-#
-#    # get axis label and append unit
-#    append_unit_if_needed!(attr, key_guide(axis), u)
-#
-#    # colorbar_title
-#    if axis == 3
-#        append_unit_if_needed!(attr, :colorbar_title, u)
-#    end
-#
-#    return arr
-#end
 
 
-#======
-Strings
-======#
+#===========
+String stuff
+===========#
 
 abstract type AbstractProtectedString <: AbstractString end
-"""
-    ProtectedString
-
-Wrapper around a `String` to "protect" it from `recipe!` passes.
-"""
 struct ProtectedString <: AbstractProtectedString
     content::String
 end
@@ -149,7 +71,7 @@ struct UnitfulString{U} <: AbstractProtectedString
     content::String
     unit::U
 end
-# Minimum required AbstractString interface to work with Plots?
+# Minimum required AbstractString interface to work with Plots
 const S = AbstractProtectedString
 Base.iterate(n::S) = iterate(n.content)
 Base.iterate(n::S, i::Integer) = iterate(n.content, i)
@@ -158,12 +80,26 @@ Base.ncodeunits(n::S) = ncodeunits(n.content)
 Base.isvalid(n::S, i::Integer) = isvalid(n.content, i)
 Base.pointer(n::S) = pointer(n.content)
 Base.pointer(n::S, i::Integer) = pointer(n.content, i)
-# macro for easy-to-use interface?
-# i.e., so that `P"foo"` creates `ProtectedString("foo")`
+"""
+    P_str(s)
+
+Creates a string that will be Protected from recipe passes.
+
+Example:
+```julia
+julia> plot(rand(10)*u"m", xlabel=P"This label is protected")
+
+julia> plot(rand(10)*u"m", xlabel=P"This label is not")
+```
+"""
 macro P_str(s)
     return ProtectedString(s)
 end
 
+
+#=============
+label modifier
+=============#
 
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
@@ -186,11 +122,5 @@ function append_unit_if_needed!(attr, key, label::String, u)
     end
     return attr
 end
-
-
-
-
-
-
 
 end # module
