@@ -27,7 +27,6 @@ function fixaxis!(attr, x, axisletter)
             u = label.unit
         end
     end
-    println(axisletter)
     # Fix the attributes: labels, lims, marker/line stuff, etc.
     append_unit_if_needed!(attr, axislabel, u)
     fixlims!(attr, axislims, u)
