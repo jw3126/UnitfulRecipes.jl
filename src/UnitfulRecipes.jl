@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful
+using Unitful: Quantity, unit, ustrip, Unitful, dimension
 export @P_str
 
 #==========
@@ -9,22 +9,70 @@ Main recipe
 ==========#
 
 @recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Quantity}
-    # Attribute keys
     axisletter = plotattributes[:letter]   # x, y, or z
+    fixaxis!(plotattributes, x, axisletter)
+end
+
+function fixaxis!(attr, x, axisletter)
+    # Attribute keys
     axislabel = Symbol(axisletter, :guide) # xguide, yguide, zguide
     axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
+    axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
-    u = pop!(plotattributes, axisunit, unit(eltype(x)))
+    u = pop!(attr, axisunit, unit(eltype(x)))
+    if length(attr[:plot_object].subplots) > 0
+        label = attr[:plot_object][end][axis][:guide]
+        if label isa UnitfulString
+            u = label.unit
+        end
+    end
+    println(axisletter)
     # Fix the attributes: labels, lims, marker/line stuff, etc.
-    append_unit_if_needed!(plotattributes, axislabel, u)
-    fixlims!(plotattributes, axislims, u)
-    fixmarkercolor!(plotattributes)
-    fixmarkersize!(plotattributes)
-    fixlinecolor!(plotattributes)
+    append_unit_if_needed!(attr, axislabel, u)
+    fixlims!(attr, axislims, u)
+    fixmarkercolor!(attr)
+    fixmarkersize!(attr)
+    fixlinecolor!(attr)
     # Strip the unit
     ustrip.(u, x)
 end
+
+# Recipe for (x::AVec, y::AVec, z::Surface) types
+const AVec = AbstractVector
+const AMat{T} = AbstractArray{T,2} where T
+@recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
+    u = get(plotattributes, :zunit, unit(eltype(z)))
+    z = fixaxis!(plotattributes, z, :z)
+    append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    x, y, z
+end
+
+# Recipe for vectors of vectors
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Quantity}}
+    axisletter = plotattributes[:letter]   # x, y, or z
+    [fixaxis!(plotattributes, x, axisletter) for x in x]
+end
+
+# Recipes for functions
+@recipe function f(f::Function, x::T) where T <: AVec{<:Quantity}
+    x, f.(x)
+end
+@recipe function f(x::T, f::Function) where T <: AVec{<:Quantity}
+    x, f.(x)
+end
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Quantity}
+    x, y, f.(x',y)
+end
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Quantity}
+    x, y, f.(x',y)
+end
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Quantity}, T2<:AVec{<:Quantity}}
+    x, y, f.(x',y)
+end
+#@recipe f(xs::V, ys::UV, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
+#@recipe f(xs::UV, ys::V, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
+#
 
 
 #==============
@@ -33,6 +81,7 @@ Attibute fixing
 
 function fixmarkercolor!(attr)
     u = ustripattribute!(attr, :marker_z)
+    fixlims!(attr, :clims, u)
     u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
 end
 fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
@@ -104,23 +153,17 @@ label modifier
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
     append_unit_if_needed!(attr, key, label, u)
-    return attr
 end
 # dispatch on the type of `label`
-append_unit_if_needed!(attr, key, label::ProtectedString, u) = attr
+append_unit_if_needed!(attr, key, label::ProtectedString, u) = nothing
+append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
     attr[key] = UnitfulString(string(u), u)
-    return attr
-end
-function append_unit_if_needed!(attr, key, label::UnitfulString, u)
-    (label.unit ≠ u) && error("The unit of $key has changed!")
-    return attr
 end
 function append_unit_if_needed!(attr, key, label::String, u)
     if label ≠ ""
         attr[key] = UnitfulString(string(label, " (", u, ")"), u)
     end
-    return attr
 end
 
 end # module

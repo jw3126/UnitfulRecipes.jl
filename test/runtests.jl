@@ -1,13 +1,13 @@
-using Test, Unitful, RecipesBase, Plots
-using Unitful: m, s, cm
+using Test, Unitful, Plots
+using Unitful: m, s, cm, DimensionError
 using UnitfulRecipes
 
-xguide(plt) = plt.subplots[1].attr[:xaxis].plotattributes[:guide]
-yguide(plt) = plt.subplots[1].attr[:yaxis].plotattributes[:guide]
-zguide(plt) = plt.subplots[1].attr[:zaxis].plotattributes[:guide]
-xseries(plt) = plt.series_list[1].plotattributes[:x]
-yseries(plt) = plt.series_list[1].plotattributes[:y]
-zseries(plt) = plt.series_list[1].plotattributes[:z]
+xguide(plt) = plt.subplots[end].attr[:xaxis].plotattributes[:guide]
+yguide(plt) = plt.subplots[end].attr[:yaxis].plotattributes[:guide]
+zguide(plt) = plt.subplots[end].attr[:zaxis].plotattributes[:guide]
+xseries(plt) = plt.series_list[end].plotattributes[:x]
+yseries(plt) = plt.series_list[end].plotattributes[:y]
+zseries(plt) = plt.series_list[end].plotattributes[:z]
 
 @testset "plot(y)" begin
     y = rand(3)m
@@ -83,7 +83,7 @@ end
             @test plot(x*m, ylabel="x")        isa Plots.Plot
             @test plot(x*m, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, ylims=(-1,1) .* m) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, yunit=u"km") isa Plots.Plot
+            @test plot(x*m, yunit=u"km") isa Plots.Plot
             @test plot(x -> x^2, x*m)          isa Plots.Plot
         end
 
@@ -92,20 +92,15 @@ end
             @test plot(x*m, y*s, xlabel="x")        isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1) .* m) isa Plots.Plot
-            if dtype == Symbol("Vectors of vectors") 
-                @test_broken plot(x*m, y*s, xunit=u"km") isa Plots.Plot
-            else
-                @test plot(x*m, y*s, xunit=u"km") isa Plots.Plot
-            end
+            @test plot(x*m, y*s, xunit=u"km")       isa Plots.Plot
             @test plot(x*m, y*s, ylabel="y")        isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1) .* s) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, yunit=u"ks") isa Plots.Plot
+            @test plot(x*m, y*s, yunit=u"ks")       isa Plots.Plot
+            @test scatter(x*m, y*s)                 isa Plots.Plot
             if dtype ≠ Symbol("Vectors of vectors")
-                @test scatter(x*m, y*s)                 isa Plots.Plot
                 @test scatter(x*m, y*s, zcolor=z*(m/s)) isa Plots.Plot
             end
-            (dtype == :Vectors) && @test plot(x*m, y*s, (x,y) -> x/s) isa Plots.Plot
         end
 
         @testset "Three arrays" begin
@@ -113,15 +108,15 @@ end
             @test plot(x*m, y*s, z*(m/s), xlabel="x")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), xlims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), xlims=(-1,1) .* m)     isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), xunit=u"km")           isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), xunit=u"km")           isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylabel="y")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylims=(-1,1) .* s)     isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), yunit=u"ks")           isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), yunit=u"ks")           isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlabel="z")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1) .* (m/s)) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), zunit=u"km/s")         isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), zunit=u"km/hr")        isa Plots.Plot
             @test scatter(x*m, y*s, z*(m/s))                     isa Plots.Plot
         end
 
@@ -156,5 +151,15 @@ end
         @test plot(y, label=P"meters") isa Plots.Plot
     end
 
-
 end
+
+@testset "Comparing apples and oranges" begin
+    x1 = rand(10) * u"m"
+    x2 = rand(10) * u"cm"
+    x3 = rand(10) * u"s"
+    plt = plot(x1)
+    plt = plot!(plt, x2)
+    @test yguide(plt) == "m"
+    @test yseries(plt) ≈ ustrip.(x2) / 100
+    @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
+end 
