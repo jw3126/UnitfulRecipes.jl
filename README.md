@@ -27,14 +27,16 @@
 
 ```julia
 using Unitful, UnitfulRecipes, Plots
-xs = randn(10)*u"km"
-ys = randn(10)*u"kg"
-plot(xs, ys)
+const a = 1u"m/s^2"
+v(t) = a * t
+x(t) = a/2 * t^2
+t = (0:0.01:100)*u"s"
+plot(x.(t), v.(t), xlabel="position", ylabel="speed")
 ```
 
 should give something like
 
-![example1](https://user-images.githubusercontent.com/4486578/72591885-74a20500-3955-11ea-9552-489451bd01fd.png)
+![UnitfulRecipeExample](https://user-images.githubusercontent.com/4486578/78975352-451b2700-7b57-11ea-8e7d-42c2860da51f.png)
 
 Head over to the [documentation](https://jw3126.github.io/UnitfulRecipes.jl/stable/) for more examples!
 
