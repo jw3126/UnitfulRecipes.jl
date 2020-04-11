@@ -1,113 +1,117 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful
+using Unitful: Quantity, unit, ustrip, Unitful, dimension
 export @P_str
 
-const A = AbstractArray
-const V = AbstractVector
-const Q = Quantity
-const UA = AbstractArray{<:Q, N} where N
-const UV = AbstractVector{<:Q}
+#==========
+Main recipe
+==========#
 
-key_lims(axis) = Symbol("xyz"[axis], "lims")
-key_guide(axis) = Symbol("xyz"[axis], "guide")
-key_unit(axis) = Symbol("xyz"[axis], "unit")
+@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Quantity}
+    axisletter = plotattributes[:letter]   # x, y, or z
+    fixaxis!(plotattributes, x, axisletter)
+end
 
-function recipe!(attr, arr)
-    fixscatterattributes!(attr)
-    fixclims!(attr)
-    if get(attr, :seriestype, nothing) == :histogram
-        resolve_axis!(attr, arr, 1)
-    else
-        resolve_axis!(attr, arr, 2)
+function fixaxis!(attr, x, axisletter)
+    # Attribute keys
+    axislabel = Symbol(axisletter, :guide) # xguide, yguide, zguide
+    axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
+    axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
+    axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
+    # Get the unit
+    u = pop!(attr, axisunit, unit(eltype(x)))
+    if length(attr[:plot_object].subplots) > 0
+        label = attr[:plot_object][end][axis][:guide]
+        if label isa UnitfulString
+            u = label.unit
+        end
     end
+    # Fix the attributes: labels, lims, marker/line stuff, etc.
+    append_unit_if_needed!(attr, axislabel, u)
+    fixlims!(attr, axislims, u)
+    fixmarkercolor!(attr)
+    fixmarkersize!(attr)
+    fixlinecolor!(attr)
+    # Strip the unit
+    ustrip.(u, x)
 end
 
-function recipe!(attr, arrs...)
-    fixscatterattributes!(attr)
-    fixclims!(attr)
-    ntuple(length(arrs)) do axis
-        arr = arrs[axis]
-        resolve_axis!(attr, arr, axis)
-    end
+# Recipe for (x::AVec, y::AVec, z::Surface) types
+const AVec = AbstractVector
+const AMat{T} = AbstractArray{T,2} where T
+@recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
+    u = get(plotattributes, :zunit, unit(eltype(z)))
+    z = fixaxis!(plotattributes, z, :z)
+    append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    x, y, z
 end
 
-function fixscatterattributes!(attr)
-    if haskey(attr, :marker_z)
-        u = unit(eltype(attr[:marker_z]))
-        attr[:marker_z] = ustrip.(u, attr[:marker_z])
-        attr[:colorbar_title] = string(u)
-    end
-    for key in [:markersize, :line_z]
-        ustripattribute!(attr, key)
-    end
+# Recipe for vectors of vectors
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Quantity}}
+    axisletter = plotattributes[:letter]   # x, y, or z
+    [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
-function fixclims!(attr)
-    if haskey(attr, :clims)
-        min, max = attr[:clims]
-        umin, umax = unit(min), unit(max)
-        attr[:clims] = (ustrip(umin, min), ustrip(umax, max))
-    end
+# Recipes for functions
+@recipe function f(f::Function, x::T) where T <: AVec{<:Quantity}
+    x, f.(x)
 end
-
-function ustripattribute!(attr, key)
-    if haskey(attr, key)
-        v = attr[key]
-        u = unit(eltype(v))
-        attr[key] = ustrip.(u, v)
-    end
+@recipe function f(x::T, f::Function) where T <: AVec{<:Quantity}
+    x, f.(x)
 end
-
-
-"""
-    resolve_axis!(attr, arr, axis)
-
-Return `arr` data after converting it to axis unit and stripping units.
-
-Mutates `attr` by converting/removing unitful attributes.
-"""
-function resolve_axis!(attr, arr::A{T}, axis::Int) where {T<:Quantity}
-    _resolve_axis!(attr, arr, T, axis)
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Quantity}
+    x, y, f.(x',y)
 end
-function resolve_axis!(attr, arrs::A{<:A{T}}, axis::Int) where {T<:Quantity}
-    [_resolve_axis!(attr, arr, T, axis) for arr in arrs]
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Quantity}
+    x, y, f.(x',y)
 end
-resolve_axis!(attr, arr::A, axis::Int) = arr # fallback
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Quantity}, T2<:AVec{<:Quantity}}
+    x, y, f.(x',y)
+end
+#@recipe f(xs::V, ys::UV, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
+#@recipe f(xs::UV, ys::V, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
+#
 
-function _resolve_axis!(attr, arr, T, axis)
-    # convert (if user-provided unit) and strip unit from data
-    key = key_unit(axis)
-    u = pop!(attr, key, unit(T))
-    arr = ustrip.(u, arr)
 
-    # convert and strip unit from lims
-    key = key_lims(axis)
+#==============
+Attibute fixing
+==============#
+
+function fixmarkercolor!(attr)
+    u = ustripattribute!(attr, :marker_z)
+    fixlims!(attr, :clims, u)
+    u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
+end
+fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
+fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
+function fixlims!(attr, key, u)
     if haskey(attr, key)
         lims = attr[key]
         if lims isa NTuple{2, Quantity}
             attr[key] = ustrip.(u, lims)
         end
     end
-
-    # get axis label and append unit
-    append_unit_if_needed!(attr, key_guide(axis), u)
-
-    # colorbar_title
-    if axis == 3
-        append_unit_if_needed!(attr, :colorbar_title, u)
-    end
-
-    return arr
 end
 
-abstract type AbstractProtectedString <: AbstractString end
-"""
-    ProtectedString
+# strip unit from attribute
+function ustripattribute!(attr, key)
+    if haskey(attr, key)
+        v = attr[key]
+        u = unit(eltype(v))
+        attr[key] = ustrip.(u, v)
+        return u
+    else
+        return Unitful.NoUnits
+    end
+end
 
-Wrapper around a `String` to "protect" it from `recipe!` passes.
-"""
+
+#===========
+String stuff
+===========#
+
+abstract type AbstractProtectedString <: AbstractString end
 struct ProtectedString <: AbstractProtectedString
     content::String
 end
@@ -115,7 +119,7 @@ struct UnitfulString{U} <: AbstractProtectedString
     content::String
     unit::U
 end
-# Minimum required AbstractString interface to work with Plots?
+# Minimum required AbstractString interface to work with Plots
 const S = AbstractProtectedString
 Base.iterate(n::S) = iterate(n.content)
 Base.iterate(n::S, i::Integer) = iterate(n.content, i)
@@ -124,79 +128,41 @@ Base.ncodeunits(n::S) = ncodeunits(n.content)
 Base.isvalid(n::S, i::Integer) = isvalid(n.content, i)
 Base.pointer(n::S) = pointer(n.content)
 Base.pointer(n::S, i::Integer) = pointer(n.content, i)
-# macro for easy-to-use interface?
-# i.e., so that `P"foo"` creates `ProtectedString("foo")`
+"""
+    P_str(s)
+
+Creates a string that will be Protected from recipe passes.
+
+Example:
+```julia
+julia> plot(rand(10)*u"m", xlabel=P"This label is protected")
+
+julia> plot(rand(10)*u"m", xlabel=P"This label is not")
+```
+"""
 macro P_str(s)
     return ProtectedString(s)
 end
 
 
+#=============
+label modifier
+=============#
+
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
     append_unit_if_needed!(attr, key, label, u)
-    return attr
 end
 # dispatch on the type of `label`
-append_unit_if_needed!(attr, key, label::ProtectedString, u) = attr
+append_unit_if_needed!(attr, key, label::ProtectedString, u) = nothing
+append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
     attr[key] = UnitfulString(string(u), u)
-    return attr
-end
-function append_unit_if_needed!(attr, key, label::UnitfulString, u)
-    (label.unit ≠ u) && error("The unit of $key has changed!")
-    return attr
 end
 function append_unit_if_needed!(attr, key, label::String, u)
     if label ≠ ""
         attr[key] = UnitfulString(string(label, " (", u, ")"), u)
     end
-    return attr
-end
-
-
-
-# (index, y)
-@recipe f(ys::UA) = recipe!(plotattributes, ys)
-@recipe f(ys::V{<:UV}) = recipe!(plotattributes, ys)
-
-# (x, y)
-@recipe f(xs::A, ys::UA) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::UA, ys::A) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::UA, ys::UA) = recipe!(plotattributes, xs, ys)
-
-# (x, y) where x or y is a vector of vectors
-@recipe f(xs::A, ys::V{<:UV}) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::UV, ys::V{<:UV}) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::V{<:UV}, ys::A) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::V{<:UV}, ys::UV) = recipe!(plotattributes, xs, ys)
-@recipe f(xs::V{<:UV}, ys::V{<:UV}) = recipe!(plotattributes, xs, ys)
-
-# (x, f(x))
-@recipe f(fun::Function, xs::UA) = recipe!(plotattributes, xs, fun.(xs))
-@recipe f(fun::Function, xs::V{<:UV}) = recipe!(plotattributes, xs, [fun.(x) for x in xs])
-
-# (x, y, f(x,y))
-@recipe f(xs::UV, ys::UV, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
-@recipe f(xs::V, ys::UV, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
-@recipe f(xs::UV, ys::V, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
-
-# (x, y, z)
-# all matrix/vector combinations where Nx = Ny = Nxy ≤ Nz
-# (where Nx is the dimensionality of x, Ny that of y, etc.)
-AAQ(N) = :(A{T,$N} where {T<:Quantity})
-AA(N) = :(A{T,$N} where {T})
-for Nz in 1:2, Nxy in 1:Nz
-    for Ts in collect(Iterators.product(fill([AAQ, AA], 3)...))[1:end-1]
-        Tx, Ty, Tz = Ts[1](Nxy), Ts[2](Nxy), Ts[3](Nz)
-        @eval @recipe f(x::$Tx, y::$Ty, z::$Tz) = recipe!(plotattributes, x, y, z)
-    end
-end
-# all vector of vector combinations
-VVQ = :(V{<:V{T}} where {T<:Quantity})
-VV = :(V{<:V{T}} where {T})
-for Ts in collect(Iterators.product(fill([VVQ, VV], 3)...))[1:end-1]
-    Tx, Ty, Tz = Ts[1], Ts[2], Ts[3]
-    @eval @recipe f(x::$Tx, y::$Ty, z::$Tz) = recipe!(plotattributes, x, y, z)
 end
 
 end # module

@@ -22,6 +22,11 @@ using Plots, Unitful, UnitfulRecipes
 y = randn(10)*u"kg"
 plot(y)
 
+# Add some more plots, and it will be aware of the units you used previously (note `y2` is about 10 times smaller than `y1`)
+
+y2 = 100randn(10)*u"g"
+plot!(y2)
+
 # ## Axis label
 
 # If you specify an axis label, the unit will be appended to it.

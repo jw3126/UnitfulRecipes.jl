@@ -4,16 +4,19 @@
 
 <p>
   <a href="https://jw3126.github.io/UnitfulRecipes.jl/stable/">
-    <img src=https://img.shields.io/badge/docs-stable-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
-  </a>
-  <a href="https://jw3126.github.io/UnitfulRecipes.jl/dev/">
-    <img src=https://img.shields.io/badge/docs-dev-important.svg?style=flat-square&label=Documentation&logo=Read%20the%20Docs>
+    <img src="https://img.shields.io/github/workflow/status/jw3126/UnitfulRecipes.jl/Documentation?style=for-the-badge&label=Documentation&logo=Read%20the%20Docs&logoColor=white">
   </a>
 </p>
 
 <p>
-  <a href="https://travis-ci.com/jw3126/UnitfulRecipes.jl">
-    <img alt="Build Status" src="https://img.shields.io/travis/com/jw3126/UnitfulRecipes.jl/master?label=OSX/Linux/Windows&logo=travis&logocolor=white&style=flat-square">
+  <a href="https://github.com/jw3126/UnitfulRecipes.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/jw3126/UnitfulRecipes.jl/Mac%20OS%20X?label=OSX&logo=Apple&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/jw3126/UnitfulRecipes.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/jw3126/UnitfulRecipes.jl/Linux?label=Linux&logo=Linux&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/jw3126/UnitfulRecipes.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/jw3126/UnitfulRecipes.jl/Windows?label=Windows&logo=Windows&logoColor=white&style=flat-square">
   </a>
   <a href="https://codecov.io/gh/jw3126/UnitfulRecipes.jl">
     <img src="https://img.shields.io/codecov/c/github/jw3126/UnitfulRecipes.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
@@ -24,14 +27,16 @@
 
 ```julia
 using Unitful, UnitfulRecipes, Plots
-xs = randn(10)*u"km"
-ys = randn(10)*u"kg"
-plot(xs, ys)
+const a = 1u"m/s^2"
+v(t) = a * t
+x(t) = a/2 * t^2
+t = (0:0.01:100)*u"s"
+plot(x.(t), v.(t), xlabel="position", ylabel="speed")
 ```
 
 should give something like
 
-![example1](https://user-images.githubusercontent.com/4486578/72591885-74a20500-3955-11ea-9552-489451bd01fd.png)
+![UnitfulRecipeExample](https://user-images.githubusercontent.com/4486578/78975352-451b2700-7b57-11ea-8e7d-42c2860da51f.png)
 
 Head over to the [documentation](https://jw3126.github.io/UnitfulRecipes.jl/stable/) for more examples!
 

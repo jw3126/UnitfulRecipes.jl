@@ -1,68 +1,73 @@
-using Test, Unitful, RecipesBase, Plots
-using Unitful: m, s, cm
-using UnitfulRecipes: recipe!, @P_str
+using Test, Unitful, Plots
+using Unitful: m, s, cm, DimensionError
+using UnitfulRecipes
 
-Attributes = Dict{Symbol, Any}
-@testset "One Array" begin
-    attr = Attributes()
-    ys_val = [1, 2.3]
-    ys = ys_val * m
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val
-    @test attr[:yguide] == "m"
+xguide(plt) = plt.subplots[end].attr[:xaxis].plotattributes[:guide]
+yguide(plt) = plt.subplots[end].attr[:yaxis].plotattributes[:guide]
+zguide(plt) = plt.subplots[end].attr[:zaxis].plotattributes[:guide]
+xseries(plt) = plt.series_list[end].plotattributes[:x]
+yseries(plt) = plt.series_list[end].plotattributes[:y]
+zseries(plt) = plt.series_list[end].plotattributes[:z]
 
-    label = P"hello"
-    content = label.content
-    attr = Attributes(:yguide => label)
-    recipe!(attr, ys)
+@testset "plot(y)" begin
+    y = rand(3)m
 
+    @testset "no keyword argument" begin
+        @test yguide(plot(y)) == "m"
+        @test yseries(plot(y)) ≈ ustrip.(y)
+    end
 
-    attr = Attributes(:yguide => "hello")
-    recipe!(attr, ys)
-    @test attr[:yguide] == "hello (m)"
+    @testset "ylabel" begin
+        @test yguide(plot(y, ylabel="hello")) == "hello (m)"
+        @test yguide(plot(y, ylabel=P"hello")) == "hello"
+        @test yguide(plot(y, ylabel="")) == ""
+    end
 
-    attr = Attributes(:yunit => cm)
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val * 100
-    @test !haskey(attr, :yunit)
+    @testset "yunit" begin
+        @test yguide(plot(y, yunit=cm)) == "cm"
+        @test yseries(plot(y, yunit=cm)) ≈ ustrip.(cm, y)
+    end
 
-    attr = Attributes(:ylims => (100cm, 2m))
-    ys_ret = recipe!(attr, ys)
-    @test ys_ret ≈ ys_val
-    @test attr[:ylims] == (1, 2)
+    @testset "ylims" begin # Using all(lims .≈ lims) because of uncontrolled type conversions?
+        @test all(ylims(plot(y, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-1m,3m))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-100cm,300cm))) .≈ (-1,3))
+        @test all(ylims(plot(y, ylims=(-100cm,3m))) .≈ (-1,3))
+    end
+
+    @testset "keyword combinations" begin
+        @test yguide(plot(y, yunit=cm, ylabel="hello")) == "hello (cm)"
+        @test yseries(plot(y, yunit=cm, ylabel="hello")) ≈ ustrip.(cm, y)
+        @test all(ylims(plot(y, yunit=cm, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-1,3))) .≈ (-1,3))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-100cm,300cm))) .≈ (-100,300))
+        @test all(ylims(plot(y, yunit=cm, ylims=(-100cm,3m))) .≈ (-100,300))
+    end
 end
 
-@testset "Multi Array" begin
-    attr = Attributes()
-    xs_val = randn(3)
-    ys_val = randn(3)
-    xu = s
-    yu = m/s
-    xs = xs_val * xu
-    ys = ys_val * yu
-    xs_ret, ys_ret = recipe!(attr, xs_val, ys)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test !haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
+@testset "plot(x,y)" begin
+    x, y = randn(3)m, randn(3)s
 
-    xs_ret, ys_ret = recipe!(attr, xs, ys)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "m"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "s"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+    end
 
-    zs_val = randn(3)
-    xs_ret, ys_ret, zs_ret = recipe!(attr, xs, ys, zs_val)
-    @test xs_ret ≈ xs_val
-    @test ys_ret ≈ ys_val
-    @test zs_ret ≈ zs_val
-    @test haskey(attr, :xguide)
-    @test haskey(attr, :yguide)
-    @test !haskey(attr, :zguide)
+    @testset "labels" begin
+        @test xguide(plot(x, y, xlabel= "hello")) == "hello (m)"
+        @test xguide(plot(x, y, xlabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, ylabel= "hello")) == "hello (s)"
+        @test yguide(plot(x, y, ylabel=P"hello")) == "hello"
+        @test xguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (m)"
+        @test xguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (s)"
+        @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+    end
 end
 
-@testset "Plots" begin
+@testset "Moar plots" begin
     @testset "data as $dtype" for dtype in [:Vectors, :Matrices, Symbol("Vectors of vectors")]
         if dtype == :Vectors
             x, y, z = randn(10), randn(10), randn(10)
@@ -78,7 +83,7 @@ end
             @test plot(x*m, ylabel="x")        isa Plots.Plot
             @test plot(x*m, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, ylims=(-1,1) .* m) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, yunit=u"km") isa Plots.Plot
+            @test plot(x*m, yunit=u"km") isa Plots.Plot
             @test plot(x -> x^2, x*m)          isa Plots.Plot
         end
 
@@ -87,20 +92,15 @@ end
             @test plot(x*m, y*s, xlabel="x")        isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, xlims=(-1,1) .* m) isa Plots.Plot
-            if dtype == Symbol("Vectors of vectors") 
-                @test_broken plot(x*m, y*s, xunit=u"km") isa Plots.Plot
-            else
-                @test plot(x*m, y*s, xunit=u"km") isa Plots.Plot
-            end
+            @test plot(x*m, y*s, xunit=u"km")       isa Plots.Plot
             @test plot(x*m, y*s, ylabel="y")        isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1) .* s) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, yunit=u"ks") isa Plots.Plot
+            @test plot(x*m, y*s, yunit=u"ks")       isa Plots.Plot
+            @test scatter(x*m, y*s)                 isa Plots.Plot
             if dtype ≠ Symbol("Vectors of vectors")
-                @test scatter(x*m, y*s)                 isa Plots.Plot
                 @test scatter(x*m, y*s, zcolor=z*(m/s)) isa Plots.Plot
             end
-            (dtype == :Vectors) && @test plot(x*m, y*s, (x,y) -> x/s) isa Plots.Plot
         end
 
         @testset "Three arrays" begin
@@ -108,15 +108,15 @@ end
             @test plot(x*m, y*s, z*(m/s), xlabel="x")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), xlims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), xlims=(-1,1) .* m)     isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), xunit=u"km")           isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), xunit=u"km")           isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylabel="y")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), ylims=(-1,1) .* s)     isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), yunit=u"ks")           isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), yunit=u"ks")           isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlabel="z")            isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1) .* (m/s)) isa Plots.Plot
-            dtype ≠ Symbol("Vectors of vectors") && @test plot(x*m, y*s, z*(m/s), zunit=u"km/s")         isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), zunit=u"km/hr")        isa Plots.Plot
             @test scatter(x*m, y*s, z*(m/s))                     isa Plots.Plot
         end
 
@@ -151,5 +151,15 @@ end
         @test plot(y, label=P"meters") isa Plots.Plot
     end
 
-
 end
+
+@testset "Comparing apples and oranges" begin
+    x1 = rand(10) * u"m"
+    x2 = rand(10) * u"cm"
+    x3 = rand(10) * u"s"
+    plt = plot(x1)
+    plt = plot!(plt, x2)
+    @test yguide(plt) == "m"
+    @test yseries(plt) ≈ ustrip.(x2) / 100
+    @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
+end 
