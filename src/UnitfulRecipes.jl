@@ -21,6 +21,7 @@ function fixaxis!(attr, x, axisletter)
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
     u = pop!(attr, axisunit, unit(eltype(x)))
+    # If the subplot already exists, get unit from its axis label
     sp = get(attr, :subplot, 1)
     if sp ≤ length(attr[:plot_object])
         label = attr[:plot_object][sp][axis][:guide]
@@ -70,15 +71,13 @@ end
 @recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Quantity}, T2<:AVec{<:Quantity}}
     x, y, f.(x',y)
 end
-#@recipe f(xs::V, ys::UV, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
-#@recipe f(xs::UV, ys::V, fun::Function) = recipe!(plotattributes, xs, ys, fun.(xs',ys))
-#
 
 
-#==============
-Attibute fixing
-==============#
+#===============
+Attribute fixing
+===============#
 
+# Markers / lines
 function fixmarkercolor!(attr)
     u = ustripattribute!(attr, :marker_z)
     fixlims!(attr, :clims, u)
@@ -86,6 +85,8 @@ function fixmarkercolor!(attr)
 end
 fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
 fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
+
+# Lims
 function fixlims!(attr, key, u)
     if haskey(attr, key)
         lims = attr[key]
@@ -95,7 +96,7 @@ function fixlims!(attr, key, u)
     end
 end
 
-# strip unit from attribute
+# strip unit from attribute[key]
 function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
@@ -108,9 +109,9 @@ function ustripattribute!(attr, key)
 end
 
 
-#===========
-String stuff
-===========#
+#=======================================
+Label string containing unit information
+=======================================#
 
 abstract type AbstractProtectedString <: AbstractString end
 struct ProtectedString <: AbstractProtectedString
@@ -146,9 +147,9 @@ macro P_str(s)
 end
 
 
-#=============
-label modifier
-=============#
+#=====================================
+Append unit to labels when appropriate
+=====================================#
 
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)

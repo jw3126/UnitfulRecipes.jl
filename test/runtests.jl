@@ -68,6 +68,26 @@ end
     end
 end
 
+@testset "With functions" begin
+    x, y = randn(3), randn(3)
+    @testset "plot(f, x) / plot(x, f)" begin
+        f(x) = x^2
+        @test plot(  f, x*m) isa Plots.Plot
+        @test plot(x*m,   f) isa Plots.Plot
+        g(x) = x*m # If the unit comes from the function only then it throws
+        @test_throws DimensionError plot(x, g) isa Plots.Plot
+        @test_throws DimensionError plot(g, x) isa Plots.Plot
+    end
+    @testset "plot(x, y, f)" begin
+        f(x,y) = x*y
+        @test plot(x*m, y*s, f) isa Plots.Plot
+        @test plot(x*m,   y, f) isa Plots.Plot
+        @test plot(  x, y*s, f) isa Plots.Plot
+        g(x,y) = x*y*m # If the unit comes from the function only then it throws
+        @test_throws DimensionError plot(x, y, g) isa Plots.Plot
+    end
+end
+
 @testset "Moar plots" begin
     @testset "data as $dtype" for dtype in [:Vectors, :Matrices, Symbol("Vectors of vectors")]
         if dtype == :Vectors
@@ -78,14 +98,12 @@ end
             x, y, z = [rand(10), rand(20)], [rand(10), rand(20)], [rand(10), rand(20)]
         end
 
-
         @testset "One array" begin
             @test plot(x*m)                    isa Plots.Plot
             @test plot(x*m, ylabel="x")        isa Plots.Plot
             @test plot(x*m, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, ylims=(-1,1) .* m) isa Plots.Plot
-            @test plot(x*m, yunit=u"km") isa Plots.Plot
-            @test plot(x -> x^2, x*m)          isa Plots.Plot
+            @test plot(x*m, yunit=u"km")       isa Plots.Plot
         end
 
         @testset "Two arrays" begin
@@ -151,7 +169,6 @@ end
         y = rand(10)*u"m"
         @test plot(y, label=P"meters") isa Plots.Plot
     end
-
 end
 
 @testset "Comparing apples and oranges" begin
@@ -163,7 +180,7 @@ end
     @test yguide(plt) == "m"
     @test yseries(plt) ≈ ustrip.(x2) / 100
     @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
-end 
+end
 
 @testset "Inset subplots" begin
     x1 = rand(10) * u"m"
