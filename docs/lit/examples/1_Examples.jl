@@ -27,6 +27,17 @@ plot(y)
 y2 = 100randn(10)*u"g"
 plot!(y2)
 
+
+# UnitfulRecipes will not allow you to plot with different unit-dimensions, so
+# ```julia
+# plot!(rand(10)*u"m")
+# ```
+# won't work here.
+#
+# But you can add inset subplots with different axes that have different dimensions
+
+plot!(rand(10)*u"m", inset=bbox(0.5, 0.5, 0.3, 0.3), subplot=2)
+
 # ## Axis label
 
 # If you specify an axis label, the unit will be appended to it.
