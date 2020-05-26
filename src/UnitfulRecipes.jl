@@ -21,8 +21,9 @@ function fixaxis!(attr, x, axisletter)
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
     u = pop!(attr, axisunit, unit(eltype(x)))
-    if length(attr[:plot_object].subplots) > 0
-        label = attr[:plot_object][end][axis][:guide]
+    sp = get(attr, :subplot, 1)
+    if sp ≤ length(attr[:plot_object])
+        label = attr[:plot_object][sp][axis][:guide]
         if label isa UnitfulString
             u = label.unit
         end

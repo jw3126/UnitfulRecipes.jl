@@ -2,12 +2,13 @@ using Test, Unitful, Plots
 using Unitful: m, s, cm, DimensionError
 using UnitfulRecipes
 
-xguide(plt) = plt.subplots[end].attr[:xaxis].plotattributes[:guide]
-yguide(plt) = plt.subplots[end].attr[:yaxis].plotattributes[:guide]
-zguide(plt) = plt.subplots[end].attr[:zaxis].plotattributes[:guide]
-xseries(plt) = plt.series_list[end].plotattributes[:x]
-yseries(plt) = plt.series_list[end].plotattributes[:y]
-zseries(plt) = plt.series_list[end].plotattributes[:z]
+# Some helper functions to access the subplot labels and the series inside each test plot
+xguide(plt, idx=length(plt.subplots)) = plt.subplots[idx].attr[:xaxis].plotattributes[:guide]
+yguide(plt, idx=length(plt.subplots)) = plt.subplots[idx].attr[:yaxis].plotattributes[:guide]
+zguide(plt, idx=length(plt.subplots)) = plt.subplots[idx].attr[:zaxis].plotattributes[:guide]
+xseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:x]
+yseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:y]
+zseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:z]
 
 @testset "plot(y)" begin
     y = rand(3)m
@@ -163,3 +164,12 @@ end
     @test yseries(plt) ≈ ustrip.(x2) / 100
     @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
 end 
+
+@testset "Inset subplots" begin
+    x1 = rand(10) * u"m"
+    x2 = rand(10) * u"s"
+    plt = plot(x1)
+    plt = plot!(x2, inset=bbox(0.5, 0.5, 0.3, 0.3), subplot=2)
+    @test yguide(plt,1) == "m"
+    @test yguide(plt,2) == "s"
+end
