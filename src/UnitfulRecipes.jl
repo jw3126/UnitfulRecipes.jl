@@ -114,11 +114,11 @@ Label string containing unit information
 =======================================#
 
 abstract type AbstractProtectedString <: AbstractString end
-struct ProtectedString <: AbstractProtectedString
-    content::String
+struct ProtectedString{S} <: AbstractProtectedString
+    content::S
 end
-struct UnitfulString{U} <: AbstractProtectedString
-    content::String
+struct UnitfulString{S,U} <: AbstractProtectedString
+    content::S
     unit::U
 end
 # Minimum required AbstractString interface to work with Plots
@@ -161,9 +161,9 @@ append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
     attr[key] = UnitfulString(string(u), u)
 end
-function append_unit_if_needed!(attr, key, label::String, u)
+function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
     if label ≠ ""
-        attr[key] = UnitfulString(string(label, " (", u, ")"), u)
+        attr[key] = UnitfulString(S(string(label, " (", u, ")")), u)
     end
 end
 
