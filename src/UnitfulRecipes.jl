@@ -159,11 +159,13 @@ end
 append_unit_if_needed!(attr, key, label::ProtectedString, u) = nothing
 append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
-    attr[key] = UnitfulString(string(u), u)
+    attr[key] = UnitfulString(replace(string(u), r"(\d+)" => s"{\1}"), u)
 end
 function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
     if label ≠ ""
-        attr[key] = UnitfulString(S(string(label, " (", u, ")")), u)
+        attr[key] = UnitfulString(S(string(label, " (", replace(string(u), r"(\d+)" => s"{\1}"), ")")), u)
+        println("Key is $(key) and the value is $(attr[key]).")
+        attr[key]
     end
 end
 
