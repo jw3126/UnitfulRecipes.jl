@@ -164,8 +164,6 @@ end
 function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
     if label ≠ ""
         attr[key] = UnitfulString(S(string(label, " (", replace(string(u), r"(\d+)" => s"{\1}"), ")")), u)
-        println("Key is $(key) and the value is $(attr[key]).")
-        attr[key]
     end
 end
 
