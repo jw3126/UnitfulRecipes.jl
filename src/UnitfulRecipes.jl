@@ -8,7 +8,7 @@ export @P_str
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Quantity}
+@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
     axisletter = plotattributes[:letter]   # x, y, or z
     fixaxis!(plotattributes, x, axisletter)
 end
@@ -50,25 +50,25 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Quantity}}
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T) where T <: AVec{<:Quantity}
+@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function) where T <: AVec{<:Quantity}
+@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Quantity}
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, y, f.(x',y)
 end
-@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Quantity}
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, y, f.(x',y)
 end
-@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Quantity}, T2<:AVec{<:Quantity}}
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
     x, y, f.(x',y)
 end
 

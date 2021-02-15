@@ -190,3 +190,11 @@ end
     @test yguide(plt,1) == "m"
     @test yguide(plt,2) == "s"
 end
+
+@testset "Missing values" begin
+    x = 1:5
+    y = [1.0*u"s", 2.0*u"s", missing, missing, missing]
+    @show typeof(y)
+    plt = plot(x,y)
+    @test yguide(plt,1) == "s"
+end
