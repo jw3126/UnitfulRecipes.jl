@@ -198,3 +198,14 @@ end
     plt = plot(x,y)
     @test yguide(plt,1) == "s"
 end
+
+@testset "Errors" begin
+    x = rand(10) * u"mm"
+    ex = rand(10) * u"μm"
+    y = rand(10) * u"s"
+    ey = rand(10) * u"ms"
+    plt =  plot(x, y, xerr=ex, yerr=ey)
+    @test plt isa Plots.Plot
+    @test xguide(plt) == "mm"
+    @test yguide(plt) == "s"
+end

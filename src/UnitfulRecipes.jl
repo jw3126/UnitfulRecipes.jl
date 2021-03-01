@@ -17,6 +17,7 @@ function fixaxis!(attr, x, axisletter)
     # Attribute keys
     axislabel = Symbol(axisletter, :guide) # xguide, yguide, zguide
     axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
+    err = Symbol(axisletter, :error)       # xerror, yerror, zerror
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
@@ -31,7 +32,8 @@ function fixaxis!(attr, x, axisletter)
     end
     # Fix the attributes: labels, lims, marker/line stuff, etc.
     append_unit_if_needed!(attr, axislabel, u)
-    fixlims!(attr, axislims, u)
+    ustripattribute!(attr, axislims, u)
+    ustripattribute!(attr, err, u)
     fixmarkercolor!(attr)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
@@ -80,21 +82,11 @@ Attribute fixing
 # Markers / lines
 function fixmarkercolor!(attr)
     u = ustripattribute!(attr, :marker_z)
-    fixlims!(attr, :clims, u)
+    ustripattribute!(attr, :clims, u)
     u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
 end
 fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
 fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
-
-# Lims
-function fixlims!(attr, key, u)
-    if haskey(attr, key)
-        lims = attr[key]
-        if lims isa NTuple{2, Quantity}
-            attr[key] = ustrip.(u, lims)
-        end
-    end
-end
 
 # strip unit from attribute[key]
 function ustripattribute!(attr, key)
@@ -107,7 +99,15 @@ function ustripattribute!(attr, key)
         return Unitful.NoUnits
     end
 end
-
+# when a unit is suppled as 3rd argument, then use that unit
+function ustripattribute!(attr, key, u)
+    if haskey(attr, key)
+        v = attr[key]
+        if eltype(v) <: Quantity
+            attr[key] = ustrip.(u, v)
+        end
+    end
+end
 
 #=======================================
 Label string containing unit information
