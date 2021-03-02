@@ -99,7 +99,7 @@ function ustripattribute!(attr, key)
         return Unitful.NoUnits
     end
 end
-# when a unit is suppled as 3rd argument, then use that unit
+# If supplied, use the unit (optional 3rd argument)
 function ustripattribute!(attr, key, u)
     if haskey(attr, key)
         v = attr[key]
@@ -107,6 +107,7 @@ function ustripattribute!(attr, key, u)
             attr[key] = ustrip.(u, v)
         end
     end
+    u
 end
 
 #=======================================
