@@ -110,4 +110,14 @@ contour(x, y, z)
 
 contourf(x, y, z)
 
+# ## Error bars
+
+# For example, you can use the `yerror` keyword argument with units,
+# which will be converted to the units of `y` and plot your errorbars:
+
+using Unitful: GeV, MeV, c
+x = (1.0:0.1:10) * GeV/c
+y = @. (2 + sin(x / (GeV/c))) * 0.4GeV/c^2 # a sine to make it pretty
+yerror = 10.9MeV/c^2 * exp.(randn(length(x))) # some noise for pretty again
+plot(x, y; yerror, title="My unitful data with yerror bars", lab="")
 
