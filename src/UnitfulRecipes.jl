@@ -8,8 +8,7 @@ export @P_str
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T; surround=:round) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
-    plotattributes[:surround] = surround
+@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
     axisletter = plotattributes[:letter]   # x, y, or z
     fixaxis!(plotattributes, x, axisletter)
 end
@@ -45,8 +44,7 @@ end
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
 const AMat{T} = AbstractArray{T,2} where T
-@recipe function f(x::AVec, y::AVec, z::AMat{T}, surround=:round) where T <: Quantity
-    plotattributes[:surround] = surround
+@recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
@@ -54,31 +52,25 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T, surround=:round) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
-    plotattributes[:surround] = surround
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T, surround=:round) where T <: AVec{<:Union{Missing,<:Quantity}}
-    plotattributes[:surround] = surround
+@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function, surround=:round) where T <: AVec{<:Union{Missing,<:Quantity}}
-    plotattributes[:surround] = surround
+@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function, surround=:round) where T <: AVec{<:Union{Missing,<:Quantity}}
-    plotattributes[:surround] = surround
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, y, f.(x',y)
 end
-@recipe function f(x::AVec, y::T, f::Function, surround=:round) where T <: AVec{<:Union{Missing,<:Quantity}}
-    plotattributes[:surround] = surround
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, y, f.(x',y)
 end
-@recipe function f(x::T1, y::T2, f::Function, surround=:round) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
-    plotattributes[:surround] = surround
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
     x, y, f.(x',y)
 end
 
@@ -172,7 +164,7 @@ function append_unit_if_needed!(attr, key, label::Nothing, u)
 end
 function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
     if !isempty(label)
-        attr[key] = UnitfulString(S(surround(label,u, attr[:surround])), u)
+        attr[key] = UnitfulString(S(surround(label,u, get(attr,:surround,:round))), u)
     end
 end
 
