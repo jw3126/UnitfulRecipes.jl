@@ -58,13 +58,16 @@ plot(y, ylabel="")
 # `:round`,`:square`,`:curly` and `:slash` do what you might expect.
 # `:slashround` and the likes will combine them. `:verbose` will insert an " in
 # units of " between the label and the unit. `nothing` will remove the
-# parentheses.  For more customizatbility, a character, a string a `Tuple` of
-# characters or strings can be supplied, which will be inserted between the
+# parentheses.  For more customizatbility, a character, a string or a `Tuple`
+# of characters or strings can be supplied, which will be inserted between the
 # label and the unit, around the unit or before, between and after, depending
-# on the length of the tuple. For *extreme* customizability, you can also
-# supply a function that turns two arguments (label, unit) into a string.
+# on the length of the tuple.
 
 plot(y,ylabel="mass",surround=:square)
+
+# For *extreme* customizability, you can also supply a function that turns two
+# arguments (label, unit) into a string.
+
 plot(y,ylabel="mass",surround=(l,u)->string("\$\\frac{",l,"}{\\mathrm{",u,"}}\$"))
 
 # ## Axis unit
