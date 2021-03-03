@@ -1,4 +1,5 @@
-#--------------------------------------------------------- # # [Simple Examples](@id 1_Examples)
+#---------------------------------------------------------
+# # [Simple Examples](@id 1_Examples)
 #---------------------------------------------------------
 
 #md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/notebooks/1_Examples.ipynb)
