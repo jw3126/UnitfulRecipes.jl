@@ -66,6 +66,31 @@ end
         @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (s)"
         @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
     end
+
+    @testset "surround" begin
+        args = (x,y)
+        kwargs = (:xlabel=>"hello",:ylabel=>"hello")
+        @test yguide(plot(args...;kwargs..., surround=nothing)) == "hello s"
+        @test yguide(plot(args...;kwargs..., surround=(l,u) -> string(u," is the unit of ",l))) == "s is the unit of hello"
+        @test yguide(plot(args...;kwargs..., surround=", dear ")) == "hello, dear s"
+        @test yguide(plot(args...;kwargs..., surround=(", dear "," esq."))) == "hello, dear s esq."
+        @test yguide(plot(args...;kwargs..., surround=("well ",", dear "," esq."))) == "well hello, dear s esq."
+        @test yguide(plot(args...;kwargs..., surround='?')) == "hello ? s"
+        @test yguide(plot(args...;kwargs..., surround=('<','>'))) == "hello <s>"
+        @test yguide(plot(args...;kwargs..., surround=('A','B','C'))) == "Ahello BsC"
+        @test yguide(plot(args...;kwargs..., surround=false)) == "hello s"
+        @test yguide(plot(args...;kwargs..., surround=true)) == "hello (s)"
+        @test yguide(plot(args...;kwargs..., surround=:round)) == "hello (s)"
+        @test yguide(plot(args...;kwargs..., surround=:square)) == "hello [s]"
+        @test yguide(plot(args...;kwargs..., surround=:curly)) == "hello {s}"
+        @test yguide(plot(args...;kwargs..., surround=:angle)) == "hello <s>"
+        @test yguide(plot(args...;kwargs..., surround=:slash)) == "hello / s"
+        @test yguide(plot(args...;kwargs..., surround=:slashround)) == "hello / (s)"
+        @test yguide(plot(args...;kwargs..., surround=:slashsquare)) == "hello / [s]"
+        @test yguide(plot(args...;kwargs..., surround=:slashcurly)) == "hello / {s}"
+        @test yguide(plot(args...;kwargs..., surround=:slashangle)) == "hello / <s>"
+        @test yguide(plot(args...;kwargs..., surround=:verbose)) == "hello in units of s"
+    end
 end
 
 @testset "With functions" begin

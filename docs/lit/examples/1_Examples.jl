@@ -1,5 +1,4 @@
-#---------------------------------------------------------
-# # [Simple Examples](@id 1_Examples)
+#--------------------------------------------------------- # # [Simple Examples](@id 1_Examples)
 #---------------------------------------------------------
 
 #md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/notebooks/1_Examples.ipynb)
@@ -51,6 +50,22 @@ plot(y, ylabel=P"mass in kilograms")
 # Just like with the `label` keyword for legends, no axis label is added if you specify the axis label to be an empty string.
 
 plot(y, ylabel="")
+
+# ### Surround
+
+# If you prefer some other formatting over the round parentheses, you can
+# supply a keyword `surround`, which can be a number of different things:
+# `:round`,`:square`,`:curly` and `:slash` do what you might expect.
+# `:slashround` and the likes will combine them. `:verbose` will insert an " in
+# units of " between the label and the unit. `nothing` will remove the
+# parentheses.  For more customizatbility, a character, a string a `Tuple` of
+# characters or strings can be supplied, which will be inserted between the
+# label and the unit, around the unit or before, between and after, depending
+# on the length of the tuple. For *extreme* customizability, you can also
+# supply a function that turns two arguments (label, unit) into a string.
+
+plot(y,ylabel="mass",surround=:square)
+plot(y,ylabel="mass",surround=(l,u)->string("\$\\frac{",l,"}{\\mathrm{",u,"}}\$"))
 
 # ## Axis unit
 
