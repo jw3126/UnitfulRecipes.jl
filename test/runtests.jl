@@ -67,29 +67,29 @@ end
         @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
     end
 
-    @testset "surround" begin
+    @testset "unitformat" begin
         args = (x, y)
         kwargs = (:xlabel=>"hello", :ylabel=>"hello")
-        @test yguide(plot(args...; kwargs..., surround=nothing)) == "hello s"
-        @test yguide(plot(args...; kwargs..., surround=(l, u) -> string(u, " is the unit of ", l))) == "s is the unit of hello"
-        @test yguide(plot(args...; kwargs..., surround=", dear ")) == "hello, dear s"
-        @test yguide(plot(args...; kwargs..., surround=(", dear ", " esq."))) == "hello, dear s esq."
-        @test yguide(plot(args...; kwargs..., surround=("well ", ", dear ", " esq."))) == "well hello, dear s esq."
-        @test yguide(plot(args...; kwargs..., surround='?')) == "hello ? s"
-        @test yguide(plot(args...; kwargs..., surround=('<', '>'))) == "hello <s>"
-        @test yguide(plot(args...; kwargs..., surround=('A', 'B', 'C'))) == "Ahello BsC"
-        @test yguide(plot(args...; kwargs..., surround=false)) == "hello s"
-        @test yguide(plot(args...; kwargs..., surround=true)) == "hello (s)"
-        @test yguide(plot(args...; kwargs..., surround=:round)) == "hello (s)"
-        @test yguide(plot(args...; kwargs..., surround=:square)) == "hello [s]"
-        @test yguide(plot(args...; kwargs..., surround=:curly)) == "hello {s}"
-        @test yguide(plot(args...; kwargs..., surround=:angle)) == "hello <s>"
-        @test yguide(plot(args...; kwargs..., surround=:slash)) == "hello / s"
-        @test yguide(plot(args...; kwargs..., surround=:slashround)) == "hello / (s)"
-        @test yguide(plot(args...; kwargs..., surround=:slashsquare)) == "hello / [s]"
-        @test yguide(plot(args...; kwargs..., surround=:slashcurly)) == "hello / {s}"
-        @test yguide(plot(args...; kwargs..., surround=:slashangle)) == "hello / <s>"
-        @test yguide(plot(args...; kwargs..., surround=:verbose)) == "hello in units of s"
+        @test yguide(plot(args...; kwargs..., unitformat=nothing)) == "hello s"
+        @test yguide(plot(args...; kwargs..., unitformat=(l, u) -> string(u, " is the unit of ", l))) == "s is the unit of hello"
+        @test yguide(plot(args...; kwargs..., unitformat=", dear ")) == "hello, dear s"
+        @test yguide(plot(args...; kwargs..., unitformat=(", dear ", " esq."))) == "hello, dear s esq."
+        @test yguide(plot(args...; kwargs..., unitformat=("well ", ", dear ", " esq."))) == "well hello, dear s esq."
+        @test yguide(plot(args...; kwargs..., unitformat='?')) == "hello ? s"
+        @test yguide(plot(args...; kwargs..., unitformat=('<', '>'))) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=('A', 'B', 'C'))) == "Ahello BsC"
+        @test yguide(plot(args...; kwargs..., unitformat=false)) == "hello s"
+        @test yguide(plot(args...; kwargs..., unitformat=true)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:round)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:square)) == "hello [s]"
+        @test yguide(plot(args...; kwargs..., unitformat=:curly)) == "hello {s}"
+        @test yguide(plot(args...; kwargs..., unitformat=:angle)) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=:slash)) == "hello / s"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashround)) == "hello / (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashsquare)) == "hello / [s]"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashcurly)) == "hello / {s}"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashangle)) == "hello / <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=:verbose)) == "hello in units of s"
     end
 end
 
