@@ -52,7 +52,7 @@ plot(y, ylabel=P"mass in kilograms")
 
 plot(y, ylabel="")
 
-# ### Surround
+# ### Unit formatting
 
 # If you prefer some other formatting over the round parentheses, you can
 # supply a keyword `unitformat`, which can be a number of different things: A
@@ -181,4 +181,3 @@ x = (1.0:0.1:10) * GeV/c
 y = @. (2 + sin(x / (GeV/c))) * 0.4GeV/c^2 # a sine to make it pretty
 yerror = 10.9MeV/c^2 * exp.(randn(length(x))) # some noise for pretty again
 plot(x, y; yerror, title="My unitful data with yerror bars", lab="")
-
