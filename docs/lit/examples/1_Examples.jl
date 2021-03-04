@@ -55,21 +55,63 @@ plot(y, ylabel="")
 # ### Surround
 
 # If you prefer some other formatting over the round parentheses, you can
-# supply a keyword `surround`, which can be a number of different things:
-# `:round`,`:square`,`:curly` and `:slash` do what you might expect.
-# `:slashround` and the likes will combine them. `:verbose` will insert an " in
-# units of " between the label and the unit. `nothing` will remove the
-# parentheses.  For more customizatbility, a character, a string or a `Tuple`
-# of characters or strings can be supplied, which will be inserted between the
-# label and the unit, around the unit or before, between and after, depending
-# on the length of the tuple.
+# supply a keyword `surround`, which can be a number of different things: A
+# `Symbol` representing a standard case (see example below), a `Char`, a
+# `String`, or a `Tuple` (of `Char`s or `String`s), which will be inserted
+# arround the label and unit depending on the length of the tuple.
 
-plot(y,ylabel="mass",surround=:square)
+plot(y, ylabel="mass", surround=:square)
 
 # For *extreme* customizability, you can also supply a function that turns two
 # arguments (label, unit) into a string.
 
-plot(y,ylabel="mass",surround=(l,u)->string("\$\\frac{",l,"}{\\mathrm{",u,"}}\$"))
+plot(y, ylabel="mass", surround=(l, u)->string("\$\\frac{", l, "}{\\mathrm{", u, "}}\$"))
+
+# A complete list of options:
+labelformatter(l, u) = string(u, ' ', l)
+surrounds = [
+             [
+              :round,
+              :square,
+              :curly,
+              :angle,
+              :slash,
+              :slashround,
+              :slashsquare,
+              :slashcurly,
+              :slashangle,
+              :verbose,
+             ],
+             [
+              ", in ",
+              (", in (", ")"),
+              ("[", "] = (", ")"),
+              ':',
+              ('$', '$'),
+              (':', ':', ':'),
+             ],
+             [
+              nothing,
+              labelformatter,
+              false,
+              true,
+             ],
+            ]
+plot([
+      plot([
+            plot(y, 1:10, xlabel="mass", title=repr(s),
+                 surround=s) for s in surrounds[1]
+           ]..., layout=(2, 5)),
+      plot([
+            plot(y, 1:10, xlabel="mass", title=repr(s),
+                 surround=s) for s in surrounds[2]
+           ]..., layout=(2, 3)),
+      plot([
+            plot(y, 1:10, xlabel="mass", title=repr(s),
+                 surround=s) for s in surrounds[3]
+           ]..., layout=(1, 4)),
+     ]..., layout=(3, 1), size=(1200, 800),
+    )
 
 # ## Axis unit
 
