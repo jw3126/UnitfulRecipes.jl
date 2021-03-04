@@ -164,34 +164,36 @@ function append_unit_if_needed!(attr, key, label::Nothing, u)
 end
 function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
     if !isempty(label)
-        attr[key] = UnitfulString(S(surround(label, u, get(attr, :surround, :round))), u)
+        attr[key] = UnitfulString(S(format_unit_label(label, u, get(attr, :unitformat, :round))), u)
     end
 end
 
 #=============================================
 Surround unit string with specified delimiters
 =============================================#
-surround(l, u, f::Nothing) = string(l, ' ', u)
-surround(l, u, f::Function) = f(l, u)
-surround(l, u, f::AbstractString) = string(l, f, u)
-surround(l, u, f::NTuple{2, <:AbstractString}) = string(l, f[1], u, f[2])
-surround(l, u, f::NTuple{3, <:AbstractString}) = string(f[1], l, f[2], u, f[3])
-surround(l, u, f::Char) = string(l, ' ', f, ' ', u)
-surround(l, u, f::NTuple{2, Char}) = string(l, ' ', f[1], u, f[2])
-surround(l, u, f::NTuple{3, Char}) = string(f[1], l, ' ', f[2], u, f[3])
-surround(l, u, f::Bool) = f ? surround(l, u, :round) : surround(l, u, nothing)
-function surround(l, u, f::Symbol)
-    f===:round && return surround(l, u, ('(', ')'))
-    f===:square && return surround(l, u, ('[', ']'))
-    f===:curly && return surround(l, u, ('{', '}'))
-    f===:angle && return surround(l, u, ('<', '>'))
-    f===:slash && return surround(l, u, '/')
-    f===:slashround && return surround(l, u, (" / (", ")"))
-    f===:slashsquare && return surround(l, u, (" / [", "]"))
-    f===:slashcurly && return surround(l, u, (" / {", "}"))
-    f===:slashangle && return surround(l, u, (" / <", ">"))
-    f===:verbose && return surround(l, u, " in units of ")
-end
+format_unit_label(l, u, f::Nothing) = string(l, ' ', u)
+format_unit_label(l, u, f::Function) = f(l, u)
+format_unit_label(l, u, f::AbstractString) = string(l, f, u)
+format_unit_label(l, u, f::NTuple{2, <:AbstractString}) = string(l, f[1], u, f[2])
+format_unit_label(l, u, f::NTuple{3, <:AbstractString}) = string(f[1], l, f[2], u, f[3])
+format_unit_label(l, u, f::Char) = string(l, ' ', f, ' ', u)
+format_unit_label(l, u, f::NTuple{2, Char}) = string(l, ' ', f[1], u, f[2])
+format_unit_label(l, u, f::NTuple{3, Char}) = string(f[1], l, ' ', f[2], u, f[3])
+format_unit_label(l, u, f::Bool) = f ? format_unit_label(l, u, :round) : format_unit_label(l, u, nothing)
 
+const UNIT_FORMATS = Dict(
+                          :round => ('(', ')'),
+                          :square => ('[', ']'),
+                          :curly => ('{', '}'),
+                          :angle => ('<', '>'),
+                          :slash => '/',
+                          :slashround => (" / (", ")"),
+                          :slashsquare => (" / [", "]"),
+                          :slashcurly => (" / {", "}"),
+                          :slashangle => (" / <", ">"),
+                          :verbose => " in units of ",
+                         )
+
+format_unit_label(l, u, f::Symbol) = format_unit_label(l,u,UNIT_FORMATS[f])
 
 end # module
