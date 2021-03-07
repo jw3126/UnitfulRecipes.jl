@@ -1,6 +1,6 @@
 # UnitfulRecipes.jl
 
-*for plotting data with units seemlessly in Julia*
+*for plotting data with units seamlessly in Julia*
 
 <p>
   <a href="https://jw3126.github.io/UnitfulRecipes.jl/stable/">
