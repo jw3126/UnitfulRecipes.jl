@@ -92,17 +92,17 @@ plot(y, yunit=u"g")
 
 # Setting the axis limits can be done with units
 
-plot(y, ylims=(-1000u"g", 2000u"g"))
+plot(y, ylims=(-1000u"g",2000u"g"))
 
 # or without
 
-plot(y, ylims=(-1, 2))
+plot(y, ylims=(-1,2))
 
 # ## Multiple series
 
 # You can plot multiple series as 2D arrays
 
-x, y = rand(10, 3)*u"m", rand(10, 3)*u"g"
+x, y = rand(10,3)*u"m", rand(10,3)*u"g"
 plot(x, y)
 
 # Or vectors of vectors (of potnetially different lengths)
@@ -122,7 +122,7 @@ plot(x, y, z)
 
 # You can do scatter plots
 
-scatter(x, y, zcolor=z, clims=(5, 20).*unit(eltype(z)))
+scatter(x, y, zcolor=z, clims=(5,20).*unit(eltype(z)))
 
 # and 3D scatter plots too
 
