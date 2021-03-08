@@ -55,63 +55,32 @@ plot(y, ylabel="")
 # ### Unit formatting
 
 # If you prefer some other formatting over the round parentheses, you can
-# supply a keyword `unitformat`, which can be a number of different things: A
-# `Symbol` representing a standard case (see example below), a `Char`, a
-# `String`, or a `Tuple` (of `Char`s or `String`s), which will be inserted
-# arround the label and unit depending on the length of the tuple.
+# supply a keyword `unitformat`, which can be a number of different things:
 
-plot(y, ylabel="mass", unitformat=:square)
+# `unitformat` can be a boolean or `nothing`:
+
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in (nothing, true, false)]...)
+
+# `unitformat` can be one of a number of predefined symbols, defined in
+
+URsymbols = keys(UnitfulRecipes.UNIT_FORMATS)
+
+# which correspond to these unit formats:
+
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in URsymbols]...)
+
+# `unitformat` can also be a `Char`, a `String`, or a `Tuple` (of `Char`s or
+# `String`s), which will be inserted around the label and unit depending on the
+# length of the tuple:
+
+URtuples = [", in ", (", in (", ")"), ("[", "] = (", ")"), ':', ('$', '$'), (':', ':', ':')]
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in URtuples]...)
 
 # For *extreme* customizability, you can also supply a function that turns two
-# arguments (label, unit) into a string.
+# arguments (label, unit) into a string:
 
-plot(y, ylabel="mass", unitformat=(l, u)->string("\$\\frac{", l, "}{\\mathrm{", u, "}}\$"))
-
-# A complete list of options:
-labelformatter(l, u) = string(u, ' ', l)
-unitformats = [
-             [
-              :round,
-              :square,
-              :curly,
-              :angle,
-              :slash,
-              :slashround,
-              :slashsquare,
-              :slashcurly,
-              :slashangle,
-              :verbose,
-             ],
-             [
-              ", in ",
-              (", in (", ")"),
-              ("[", "] = (", ")"),
-              ':',
-              ('$', '$'),
-              (':', ':', ':'),
-             ],
-             [
-              nothing,
-              labelformatter,
-              false,
-              true,
-             ],
-            ]
-plot([
-      plot([
-            plot(y, 1:10, xlabel="mass", title=repr(s),
-                 unitformat=s) for s in unitformats[1]
-           ]..., layout=(2, 5)),
-      plot([
-            plot(y, 1:10, xlabel="mass", title=repr(s),
-                 unitformat=s) for s in unitformats[2]
-           ]..., layout=(2, 3)),
-      plot([
-            plot(y, 1:10, xlabel="mass", title=repr(s),
-                 unitformat=s) for s in unitformats[3]
-           ]..., layout=(1, 4)),
-     ]..., layout=(3, 1), size=(1200, 800),
-    )
+formatter(l, u) = string("\$\\frac{\\textrm{", l, "}}{\\mathrm{", u, "}}\$")
+plot(y, ylab="mass", unitformat=formatter)
 
 # ## Axis unit
 
