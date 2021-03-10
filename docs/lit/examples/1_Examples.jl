@@ -52,6 +52,36 @@ plot(y, ylabel=P"mass in kilograms")
 
 plot(y, ylabel="")
 
+# ### Unit formatting
+
+# If you prefer some other formatting over the round parentheses, you can
+# supply a keyword `unitformat`, which can be a number of different things:
+
+# `unitformat` can be a boolean or `nothing`:
+
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in (nothing, true, false)]...)
+
+# `unitformat` can be one of a number of predefined symbols, defined in
+
+URsymbols = keys(UnitfulRecipes.UNIT_FORMATS)
+
+# which correspond to these unit formats:
+
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in URsymbols]...)
+
+# `unitformat` can also be a `Char`, a `String`, or a `Tuple` (of `Char`s or
+# `String`s), which will be inserted around the label and unit depending on the
+# length of the tuple:
+
+URtuples = [", in ", (", in (", ")"), ("[", "] = (", ")"), ':', ('$', '$'), (':', ':', ':')]
+plot([plot(y, ylab="mass", title=repr(s), unitformat=s) for s in URtuples]...)
+
+# For *extreme* customizability, you can also supply a function that turns two
+# arguments (label, unit) into a string:
+
+formatter(l, u) = string("\$\\frac{\\textrm{", l, "}}{\\mathrm{", u, "}}\$")
+plot(y, ylab="mass", unitformat=formatter)
+
 # ## Axis unit
 
 # You can use the axis-specific keyword arguments to convert units on the fly
@@ -120,4 +150,3 @@ x = (1.0:0.1:10) * GeV/c
 y = @. (2 + sin(x / (GeV/c))) * 0.4GeV/c^2 # a sine to make it pretty
 yerror = 10.9MeV/c^2 * exp.(randn(length(x))) # some noise for pretty again
 plot(x, y; yerror, title="My unitful data with yerror bars", lab="")
-

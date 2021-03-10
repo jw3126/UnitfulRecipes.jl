@@ -66,6 +66,31 @@ end
         @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (s)"
         @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
     end
+
+    @testset "unitformat" begin
+        args = (x, y)
+        kwargs = (:xlabel=>"hello", :ylabel=>"hello")
+        @test yguide(plot(args...; kwargs..., unitformat=nothing)) == "hello s"
+        @test yguide(plot(args...; kwargs..., unitformat=(l, u) -> string(u, " is the unit of ", l))) == "s is the unit of hello"
+        @test yguide(plot(args...; kwargs..., unitformat=", dear ")) == "hello, dear s"
+        @test yguide(plot(args...; kwargs..., unitformat=(", dear ", " esq."))) == "hello, dear s esq."
+        @test yguide(plot(args...; kwargs..., unitformat=("well ", ", dear ", " esq."))) == "well hello, dear s esq."
+        @test yguide(plot(args...; kwargs..., unitformat='?')) == "hello ? s"
+        @test yguide(plot(args...; kwargs..., unitformat=('<', '>'))) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=('A', 'B', 'C'))) == "Ahello BsC"
+        @test yguide(plot(args...; kwargs..., unitformat=false)) == "hello s"
+        @test yguide(plot(args...; kwargs..., unitformat=true)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:round)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:square)) == "hello [s]"
+        @test yguide(plot(args...; kwargs..., unitformat=:curly)) == "hello {s}"
+        @test yguide(plot(args...; kwargs..., unitformat=:angle)) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=:slash)) == "hello / s"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashround)) == "hello / (s)"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashsquare)) == "hello / [s]"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashcurly)) == "hello / {s}"
+        @test yguide(plot(args...; kwargs..., unitformat=:slashangle)) == "hello / <s>"
+        @test yguide(plot(args...; kwargs..., unitformat=:verbose)) == "hello in units of s"
+    end
 end
 
 @testset "With functions" begin
