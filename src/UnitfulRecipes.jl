@@ -8,7 +8,7 @@ export @P_str
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
+@recipe function f(::Type{T}, x::T) where {T<:AbstractArray{<:Union{Missing,<:Quantity}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     fixaxis!(plotattributes, x, axisletter)
 end
@@ -43,8 +43,8 @@ end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
-const AMat{T} = AbstractArray{T,2} where T
-@recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
+const AMat{T} = AbstractArray{T,2} where {T}
+@recipe function f(x::AVec, y::AVec, z::AMat{T}) where {T<:Quantity}
     u = get(plotattributes, :zunit, unit(eltype(z)))
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
@@ -52,26 +52,33 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
+@recipe function f(
+    ::Type{T},
+    x::T,
+) where {T<:AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(f::Function, x::T) where {T<:AVec{<:Union{Missing,<:Quantity}}}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
-    x, y, f.(x',y)
+@recipe function f(x::T, y::AVec, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
+    x, y, f.(x', y)
 end
-@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
-    x, y, f.(x',y)
+@recipe function f(x::AVec, y::T, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
+    x, y, f.(x', y)
 end
-@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
-    x, y, f.(x',y)
+@recipe function f(
+    x::T1,
+    y::T2,
+    f::Function,
+) where {T1<:AVec{<:Union{Missing,<:Quantity}},T2<:AVec{<:Union{Missing,<:Quantity}}}
+    x, y, f.(x', y)
 end
 
 
@@ -162,7 +169,7 @@ append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
     attr[key] = UnitfulString(string(u), u)
 end
-function append_unit_if_needed!(attr, key, label::S, u) where {S <: AbstractString}
+function append_unit_if_needed!(attr, key, label::S, u) where {S<:AbstractString}
     if label ≠ ""
         attr[key] = UnitfulString(S(string(label, " (", u, ")")), u)
     end
