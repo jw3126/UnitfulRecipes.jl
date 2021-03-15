@@ -1,6 +1,7 @@
 using Test, Unitful, Plots
 using Unitful: m, s, cm, DimensionError
 using UnitfulRecipes
+import JuliaFormatter
 
 # Some helper functions to access the subplot labels and the series inside each test plot
 xguide(plt, idx = length(plt.subplots)) =
@@ -68,6 +69,41 @@ end
         @test xguide(plot(x, y, xlabel = P"hello", ylabel = P"hello")) == "hello"
         @test yguide(plot(x, y, xlabel = "hello", ylabel = "hello")) == "hello (s)"
         @test yguide(plot(x, y, xlabel = P"hello", ylabel = P"hello")) == "hello"
+    end
+
+    @testset "unitformat" begin
+        args = (x, y)
+        kwargs = (:xlabel => "hello", :ylabel => "hello")
+        @test yguide(plot(args...; kwargs..., unitformat = nothing)) == "hello s"
+        @test yguide(
+            plot(
+                args...;
+                kwargs...,
+                unitformat = (l, u) -> string(u, " is the unit of ", l),
+            ),
+        ) == "s is the unit of hello"
+        @test yguide(plot(args...; kwargs..., unitformat = ", dear ")) == "hello, dear s"
+        @test yguide(plot(args...; kwargs..., unitformat = (", dear ", " esq."))) ==
+              "hello, dear s esq."
+        @test yguide(
+            plot(args...; kwargs..., unitformat = ("well ", ", dear ", " esq.")),
+        ) == "well hello, dear s esq."
+        @test yguide(plot(args...; kwargs..., unitformat = '?')) == "hello ? s"
+        @test yguide(plot(args...; kwargs..., unitformat = ('<', '>'))) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat = ('A', 'B', 'C'))) == "Ahello BsC"
+        @test yguide(plot(args...; kwargs..., unitformat = false)) == "hello s"
+        @test yguide(plot(args...; kwargs..., unitformat = true)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat = :round)) == "hello (s)"
+        @test yguide(plot(args...; kwargs..., unitformat = :square)) == "hello [s]"
+        @test yguide(plot(args...; kwargs..., unitformat = :curly)) == "hello {s}"
+        @test yguide(plot(args...; kwargs..., unitformat = :angle)) == "hello <s>"
+        @test yguide(plot(args...; kwargs..., unitformat = :slash)) == "hello / s"
+        @test yguide(plot(args...; kwargs..., unitformat = :slashround)) == "hello / (s)"
+        @test yguide(plot(args...; kwargs..., unitformat = :slashsquare)) == "hello / [s]"
+        @test yguide(plot(args...; kwargs..., unitformat = :slashcurly)) == "hello / {s}"
+        @test yguide(plot(args...; kwargs..., unitformat = :slashangle)) == "hello / <s>"
+        @test yguide(plot(args...; kwargs..., unitformat = :verbose)) ==
+              "hello in units of s"
     end
 end
 
@@ -207,7 +243,6 @@ end
 @testset "Missing values" begin
     x = 1:5
     y = [1.0 * u"s", 2.0 * u"s", missing, missing, missing]
-    @show typeof(y)
     plt = plot(x, y)
     @test yguide(plt, 1) == "s"
 end
@@ -221,4 +256,20 @@ end
     @test plt isa Plots.Plot
     @test xguide(plt) == "mm"
     @test yguide(plt) == "s"
+end
+
+@testset "code style" begin
+    root = joinpath(@__DIR__, "..")
+    isformatted = JuliaFormatter.format(root, overwrite = false)
+    if !isformatted
+        msg = """
+        Package code is not formatted correctly. You can format as follows:
+        ```
+        import JuliaFormatter;
+        JuliaFormatter.format($(repr(root)));
+        ```
+        """
+        error(msg)
+    end
+    @test isformatted
 end
