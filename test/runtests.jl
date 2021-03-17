@@ -257,19 +257,3 @@ end
     @test xguide(plt) == "mm"
     @test yguide(plt) == "s"
 end
-
-@testset "code style" begin
-    root = joinpath(@__DIR__, "..")
-    isformatted = JuliaFormatter.format(root, overwrite = false)
-    if !isformatted
-        msg = """
-        Package code is not formatted correctly. You can format as follows:
-        ```
-        import JuliaFormatter;
-        JuliaFormatter.format($(repr(root)));
-        ```
-        """
-        error(msg)
-    end
-    @test isformatted
-end
