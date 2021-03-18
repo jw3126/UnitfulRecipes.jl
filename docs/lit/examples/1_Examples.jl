@@ -27,7 +27,6 @@ plot(y)
 y2 = 100randn(10) * u"g"
 plot!(y2)
 
-
 # UnitfulRecipes will not allow you to plot with different unit-dimensions, so
 # ```julia
 # plot!(rand(10)*u"m")
@@ -36,21 +35,21 @@ plot!(y2)
 #
 # But you can add inset subplots with different axes that have different dimensions
 
-plot!(rand(10) * u"m", inset = bbox(0.5, 0.5, 0.3, 0.3), subplot = 2)
+plot!(rand(10) * u"m"; inset=bbox(0.5, 0.5, 0.3, 0.3), subplot=2)
 
 # ## Axis label
 
 # If you specify an axis label, the unit will be appended to it.
 
-plot(y, ylabel = "mass")
+plot(y; ylabel="mass")
 
 # Unless you want it untouched, in which case you can use a "protected" string using the `@P_str` macro.
 
-plot(y, ylabel = P"mass in kilograms")
+plot(y; ylabel=P"mass in kilograms")
 
 # Just like with the `label` keyword for legends, no axis label is added if you specify the axis label to be an empty string.
 
-plot(y, ylabel = "")
+plot(y; ylabel="")
 
 # ### Unit formatting
 
@@ -59,12 +58,7 @@ plot(y, ylabel = "")
 
 # `unitformat` can be a boolean or `nothing`:
 
-plot(
-    [
-        plot(y, ylab = "mass", title = repr(s), unitformat = s) for
-        s in (nothing, true, false)
-    ]...,
-)
+plot([plot(y; ylab="mass", title=repr(s), unitformat=s) for s in (nothing, true, false)]...)
 
 # `unitformat` can be one of a number of predefined symbols, defined in
 
@@ -72,36 +66,36 @@ URsymbols = keys(UnitfulRecipes.UNIT_FORMATS)
 
 # which correspond to these unit formats:
 
-plot([plot(y, ylab = "mass", title = repr(s), unitformat = s) for s in URsymbols]...)
+plot([plot(y; ylab="mass", title=repr(s), unitformat=s) for s in URsymbols]...)
 
 # `unitformat` can also be a `Char`, a `String`, or a `Tuple` (of `Char`s or
 # `String`s), which will be inserted around the label and unit depending on the
 # length of the tuple:
 
 URtuples = [", in ", (", in (", ")"), ("[", "] = (", ")"), ':', ('$', '$'), (':', ':', ':')]
-plot([plot(y, ylab = "mass", title = repr(s), unitformat = s) for s in URtuples]...)
+plot([plot(y; ylab="mass", title=repr(s), unitformat=s) for s in URtuples]...)
 
 # For *extreme* customizability, you can also supply a function that turns two
 # arguments (label, unit) into a string:
 
 formatter(l, u) = string("\$\\frac{\\textrm{", l, "}}{\\mathrm{", u, "}}\$")
-plot(y, ylab = "mass", unitformat = formatter)
+plot(y; ylab="mass", unitformat=formatter)
 
 # ## Axis unit
 
 # You can use the axis-specific keyword arguments to convert units on the fly
 
-plot(y, yunit = u"g")
+plot(y; yunit=u"g")
 
 # ## Axis limits
 
 # Setting the axis limits can be done with units
 
-plot(y, ylims = (-1000u"g", 2000u"g"))
+plot(y; ylims=(-1000u"g", 2000u"g"))
 
 # or without
 
-plot(y, ylims = (-1, 2))
+plot(y; ylims=(-1, 2))
 
 # ## Multiple series
 
@@ -127,11 +121,11 @@ plot(x, y, z)
 
 # You can do scatter plots
 
-scatter(x, y, zcolor = z, clims = (5, 20) .* unit(eltype(z)))
+scatter(x, y; zcolor=z, clims=(5, 20) .* unit(eltype(z)))
 
 # and 3D scatter plots too
 
-scatter(x, y, z, zcolor = z)
+scatter(x, y, z; zcolor=z)
 
 # ## Contour plots
 
@@ -154,4 +148,4 @@ using Unitful: GeV, MeV, c
 x = (1.0:0.1:10) * GeV / c
 y = @. (2 + sin(x / (GeV / c))) * 0.4GeV / c^2 # a sine to make it pretty
 yerror = 10.9MeV / c^2 * exp.(randn(length(x))) # some noise for pretty again
-plot(x, y; yerror, title = "My unitful data with yerror bars", lab = "")
+plot(x, y; yerror, title="My unitful data with yerror bars", lab="")

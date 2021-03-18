@@ -10,7 +10,7 @@ Main recipe
 
 @recipe function f(::Type{T}, x::T) where {T<:AbstractArray{<:Union{Missing,<:Quantity}}}
     axisletter = plotattributes[:letter]   # x, y, or z
-    fixaxis!(plotattributes, x, axisletter)
+    return fixaxis!(plotattributes, x, axisletter)
 end
 
 function fixaxis!(attr, x, axisletter)
@@ -38,7 +38,7 @@ function fixaxis!(attr, x, axisletter)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
     # Strip the unit
-    ustrip.(u, x)
+    return ustrip.(u, x)
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
@@ -48,39 +48,35 @@ const AMat{T} = AbstractArray{T,2} where {T}
     u = get(plotattributes, :zunit, unit(eltype(z)))
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
-    x, y, z
+    return x, y, z
 end
 
 # Recipe for vectors of vectors
 @recipe function f(
-    ::Type{T},
-    x::T,
+    ::Type{T}, x::T
 ) where {T<:AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}}
     axisletter = plotattributes[:letter]   # x, y, or z
-    [fixaxis!(plotattributes, x, axisletter) for x in x]
+    return [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
 # Recipes for functions
 @recipe function f(f::Function, x::T) where {T<:AVec{<:Union{Missing,<:Quantity}}}
-    x, f.(x)
+    return x, f.(x)
 end
 @recipe function f(x::T, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
-    x, f.(x)
+    return x, f.(x)
 end
 @recipe function f(x::T, y::AVec, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
-    x, y, f.(x', y)
+    return x, y, f.(x', y)
 end
 @recipe function f(x::AVec, y::T, f::Function) where {T<:AVec{<:Union{Missing,<:Quantity}}}
-    x, y, f.(x', y)
+    return x, y, f.(x', y)
 end
 @recipe function f(
-    x::T1,
-    y::T2,
-    f::Function,
+    x::T1, y::T2, f::Function
 ) where {T1<:AVec{<:Union{Missing,<:Quantity}},T2<:AVec{<:Union{Missing,<:Quantity}}}
-    x, y, f.(x', y)
+    return x, y, f.(x', y)
 end
-
 
 #===============
 Attribute fixing
@@ -90,7 +86,7 @@ Attribute fixing
 function fixmarkercolor!(attr)
     u = ustripattribute!(attr, :marker_z)
     ustripattribute!(attr, :clims, u)
-    u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
+    return u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
 end
 fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
 fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
@@ -114,7 +110,7 @@ function ustripattribute!(attr, key, u)
             attr[key] = ustrip.(u, v)
         end
     end
-    u
+    return u
 end
 
 #=======================================
@@ -154,25 +150,25 @@ macro P_str(s)
     return ProtectedString(s)
 end
 
-
 #=====================================
 Append unit to labels when appropriate
 =====================================#
 
 function append_unit_if_needed!(attr, key, u::Unitful.Units)
     label = get(attr, key, nothing)
-    append_unit_if_needed!(attr, key, label, u)
+    return append_unit_if_needed!(attr, key, label, u)
 end
 # dispatch on the type of `label`
 append_unit_if_needed!(attr, key, label::ProtectedString, u) = nothing
 append_unit_if_needed!(attr, key, label::UnitfulString, u) = nothing
 function append_unit_if_needed!(attr, key, label::Nothing, u)
-    attr[key] = UnitfulString(string(u), u)
+    return attr[key] = UnitfulString(string(u), u)
 end
 function append_unit_if_needed!(attr, key, label::S, u) where {S<:AbstractString}
     if !isempty(label)
-        attr[key] =
-            UnitfulString(S(format_unit_label(label, u, get(attr, :unitformat, :round))), u)
+        attr[key] = UnitfulString(
+            S(format_unit_label(label, u, get(attr, :unitformat, :round))), u
+        )
     end
 end
 
@@ -187,8 +183,9 @@ format_unit_label(l, u, f::NTuple{3,<:AbstractString}) = string(f[1], l, f[2], u
 format_unit_label(l, u, f::Char) = string(l, ' ', f, ' ', u)
 format_unit_label(l, u, f::NTuple{2,Char}) = string(l, ' ', f[1], u, f[2])
 format_unit_label(l, u, f::NTuple{3,Char}) = string(f[1], l, ' ', f[2], u, f[3])
-format_unit_label(l, u, f::Bool) =
-    f ? format_unit_label(l, u, :round) : format_unit_label(l, u, nothing)
+function format_unit_label(l, u, f::Bool)
+    return f ? format_unit_label(l, u, :round) : format_unit_label(l, u, nothing)
+end
 
 const UNIT_FORMATS = Dict(
     :round => ('(', ')'),
