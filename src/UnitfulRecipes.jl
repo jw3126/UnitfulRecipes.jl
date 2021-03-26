@@ -75,25 +75,11 @@ end
 @recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
     x, y, f.(x',y)
 end
-@recipe function f(f::Function, u1::Units, u::Vararg{Units})
-    UnitFunction(f, [u1, u...])
+@recipe function f(f::Function, u::Units)
+    recipedata = RecipesBase.apply_recipe(plotattributes,f)
+    (f, xmin, xmax) = recipedata[1].args
+    f, xmin*u, xmax*u
 end
-
-"""
-```julia
-UnitFunction
-```
-A function, bundled with the assumed units of each of its inputs.
-
-```julia
-UnitFunction((x, y)->x^2 + y, u"s", u"m^2")(2,3) == (2u"m")^2 + 3u"m^2" == 7u"m^2"
-```
-"""
-struct UnitFunction <: Function
-    f::Function
-    u::Vector{Units}
-end
-(f::UnitFunction)(args...) = f.f((args .* f.u)...)
 
 #===============
 Attribute fixing
