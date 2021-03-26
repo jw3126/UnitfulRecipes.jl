@@ -114,6 +114,15 @@ end
         g(x,y) = x*y*m # If the unit comes from the function only then it throws
         @test_throws DimensionError plot(x, y, g) isa Plots.Plot
     end
+    @testset "plot(f, u)" begin
+        f(x) = x^2
+        pl = plot(x*m, f.(x*m))
+        @test plot!(pl, f, m) isa Plots.Plot
+        @test_throws DimensionError plot!(pl, f, s) isa Plots.Plot
+        pl = plot(f, m)
+        @test xguide(pl) == "m"
+        @test yguide(pl) == "m^2"
+    end
 end
 
 @testset "Moar plots" begin
