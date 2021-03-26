@@ -150,3 +150,16 @@ x = (1.0:0.1:10) * GeV/c
 y = @. (2 + sin(x / (GeV/c))) * 0.4GeV/c^2 # a sine to make it pretty
 yerror = 10.9MeV/c^2 * exp.(randn(length(x))) # some noise for pretty again
 plot(x, y; yerror, title="My unitful data with yerror bars", lab="")
+
+# ## Functions
+#
+# In order to plot a unitful function on a unitful axis, supply as a second argument a
+# vector of unitful sample points, or the unit for the independent axis:
+
+model(x) = 1u"V"*exp(-((x-0.5u"s")/0.7u"s")^2)
+t = randn(10)u"s" # Sample points
+U = model.(t) + randn(10)u"dV" .|> u"V" # Noisy acquicisions
+plot(t, U; xlabel="t", ylabel="U", st=:scatter, label="Samples")
+plot!(model, t; st=:scatter, label="Noise removed")
+plot!(model, u"s"; label="True function")
+

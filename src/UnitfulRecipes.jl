@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful, dimension
+using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
 export @P_str
 
 #==========
@@ -62,6 +62,9 @@ end
 # Recipes for functions
 @recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
+end
+@recipe function f(f::Function, u::Units)
+    x->f(x*u)
 end
 @recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)
