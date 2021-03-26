@@ -22,6 +22,9 @@ zseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[
         @test yguide(plot(y, ylabel="hello")) == "hello (m)"
         @test yguide(plot(y, ylabel=P"hello")) == "hello"
         @test yguide(plot(y, ylabel="")) == ""
+        pl = plot(y; ylabel="hello")
+        plot!(pl, -y)
+        @test yguide(pl) == "hello (m)"
     end
 
     @testset "yunit" begin

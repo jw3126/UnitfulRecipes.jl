@@ -29,6 +29,8 @@ function fixaxis!(attr, x, axisletter)
         if label isa UnitfulString
             u = label.unit
         end
+        # If label was not given as an argument, reuse
+        get!(attr, axislabel, label)
     end
     # Fix the attributes: labels, lims, marker/line stuff, etc.
     append_unit_if_needed!(attr, axislabel, u)
