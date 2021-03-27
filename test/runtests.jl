@@ -120,8 +120,8 @@ end
         @test plot!(pl, f, m) isa Plots.Plot
         @test_throws DimensionError plot!(pl, f, s) isa Plots.Plot
         pl = plot(f, m)
-        @test xguide(pl) == "m"
-        @test yguide(pl) == "m^2"
+        @test xguide(pl) == string(m)
+        @test yguide(pl) == string(m^2)
     end
 end
 
