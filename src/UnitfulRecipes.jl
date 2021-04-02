@@ -76,10 +76,29 @@ end
     x, y, f.(x',y)
 end
 @recipe function f(f::Function, u::Units)
-    recipedata = RecipesBase.apply_recipe(plotattributes,f)
-    (f, xmin, xmax) = recipedata[1].args
-    f, xmin*u, xmax*u
+    uf = UnitFunction(f, [u])
+    recipedata = RecipesBase.apply_recipe(plotattributes, uf)
+    (_, xmin, xmax) = recipedata[1].args
+    return f, xmin*u, xmax*u
 end
+
+"""
+```julia
+UnitFunction
+```
+A function, bundled with the assumed units of each of its inputs.
+
+```julia
+f(x, y) = x^2 + y
+uf = UnitFunction(f, u"m", u"m^2")
+uf(3, 2) == f(3u"m", 2u"m"^2) == 7u"m^2"
+```
+"""
+struct UnitFunction <: Function
+    f::Function
+    u::Vector{Units}
+end
+(f::UnitFunction)(args...) = f.f((args .* f.u)...)
 
 #===============
 Attribute fixing
