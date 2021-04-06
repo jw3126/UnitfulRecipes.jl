@@ -23,7 +23,10 @@
   </a>
 </p>
 
-[UnitfulRecipes.jl](https://github.com/jw3126/UnitfulRecipes.jl) provides recipes for plotting figures ([Plots.jl](https://github.com/JuliaPlots/Plots.jl)) when using data with units ([Unitful.jl](https://github.com/PainterQubits/Unitful.jl)).
+[UnitfulRecipes.jl](https://github.com/jw3126/UnitfulRecipes.jl) makes it easy to plot data with units.
+
+It works by providing [recipes](http://docs.juliaplots.org/latest/recipes/#recipes) for the [Plots.jl](https://github.com/JuliaPlots/Plots.jl) package that can deal with units from [Unitful.jl](https://github.com/PainterQubits/Unitful.jl).
+For a quick example,
 
 ```julia
 using Unitful, UnitfulRecipes, Plots
