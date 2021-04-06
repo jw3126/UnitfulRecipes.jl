@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful, dimension
+using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
 export @P_str
 
 #==========
@@ -75,7 +75,30 @@ end
 @recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
     x, y, f.(x',y)
 end
+@recipe function f(f::Function, u::Units)
+    uf = UnitFunction(f, [u])
+    recipedata = RecipesBase.apply_recipe(plotattributes, uf)
+    (_, xmin, xmax) = recipedata[1].args
+    return f, xmin*u, xmax*u
+end
 
+"""
+```julia
+UnitFunction
+```
+A function, bundled with the assumed units of each of its inputs.
+
+```julia
+f(x, y) = x^2 + y
+uf = UnitFunction(f, u"m", u"m^2")
+uf(3, 2) == f(3u"m", 2u"m"^2) == 7u"m^2"
+```
+"""
+struct UnitFunction <: Function
+    f::Function
+    u::Vector{Units}
+end
+(f::UnitFunction)(args...) = f.f((args .* f.u)...)
 
 #===============
 Attribute fixing
