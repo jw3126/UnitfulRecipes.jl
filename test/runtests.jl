@@ -143,6 +143,7 @@ end
             @test plot(x*m, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, ylims=(-1,1) .* m) isa Plots.Plot
             @test plot(x*m, yunit=u"km")       isa Plots.Plot
+            @test plot(x*m, xticks=(1:3)*m)    isa Plots.Plot
         end
 
         @testset "Two arrays" begin
@@ -155,6 +156,7 @@ end
             @test plot(x*m, y*s, ylims=(-1,1))      isa Plots.Plot
             @test plot(x*m, y*s, ylims=(-1,1) .* s) isa Plots.Plot
             @test plot(x*m, y*s, yunit=u"ks")       isa Plots.Plot
+            @test plot(x*m, y*s, yticks=(1:3)*s)    isa Plots.Plot
             @test scatter(x*m, y*s)                 isa Plots.Plot
             if dtype ≠ Symbol("Vectors of vectors")
                 @test scatter(x*m, y*s, zcolor=z*(m/s)) isa Plots.Plot
@@ -175,6 +177,7 @@ end
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1))          isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zlims=(-1,1) .* (m/s)) isa Plots.Plot
             @test plot(x*m, y*s, z*(m/s), zunit=u"km/hr")        isa Plots.Plot
+            @test plot(x*m, y*s, z*(m/s), zticks=(1:2)*m/s)      isa Plots.Plot
             @test scatter(x*m, y*s, z*(m/s))                     isa Plots.Plot
         end
 
