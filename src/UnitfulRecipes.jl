@@ -17,6 +17,7 @@ function fixaxis!(attr, x, axisletter)
     # Attribute keys
     axislabel = Symbol(axisletter, :guide) # xguide, yguide, zguide
     axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
+    axisticks = Symbol(axisletter, :ticks) # xticks, yticks, zticks
     err = Symbol(axisletter, :error)       # xerror, yerror, zerror
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
@@ -32,9 +33,10 @@ function fixaxis!(attr, x, axisletter)
         # If label was not given as an argument, reuse
         get!(attr, axislabel, label)
     end
-    # Fix the attributes: labels, lims, marker/line stuff, etc.
+    # Fix the attributes: labels, lims, ticks, marker/line stuff, etc.
     append_unit_if_needed!(attr, axislabel, u)
     ustripattribute!(attr, axislims, u)
+    ustripattribute!(attr, axisticks, u)
     ustripattribute!(attr, err, u)
     fixmarkercolor!(attr)
     fixmarkersize!(attr)
