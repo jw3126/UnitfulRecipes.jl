@@ -88,15 +88,16 @@ plot(y, ylab="mass", unitformat=formatter)
 
 plot(y, yunit=u"g")
 
-# ## Axis limits
+# ## Axis limits and ticks
 
-# Setting the axis limits can be done with units
+# Setting the axis limits and ticks can be done with units
 
-plot(y, ylims=(-1000u"g",2000u"g"))
+x = (1:length(y)) * u"μs"
+plot(x, y, ylims=(-1000u"g",2000u"g"), xticks = x[[1,end]])
 
 # or without
 
-plot(y, ylims=(-1,2))
+plot(x, y, ylims=(-1,2), xticks=1:3:length(x))
 
 # ## Multiple series
 
