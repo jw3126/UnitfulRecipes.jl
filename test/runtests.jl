@@ -12,7 +12,7 @@ zseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[
 
 @testset "heatmap" begin
    x = (1:3)m
-   @test_broken heatmap(x*x', clims=(1m^2,2m^2)) isa Plots.Plot # todo
+   @test heatmap(x*x', clims=(1m^2,2m^2)) isa Plots.Plot # todo
    @test heatmap(1:3, (1:3)*m, x*x', clims=(1m^2,3m^2)) isa Plots.Plot
 end
 

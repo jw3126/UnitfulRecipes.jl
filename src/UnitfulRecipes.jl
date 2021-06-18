@@ -56,17 +56,20 @@ const AMat{T} = AbstractArray{T,2} where T
     x, y, z
 end
 
-#=
-# This code fixes the heatmap(z) issue #59 but breaks some "Moar" tests
-# Recipe for (z::Surface) types
+# Recipe for heatmap(z), surface(z)
+# Caution: also gets use for plot(z::Matrix)
 @recipe function f(z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
-    ustripattribute!(plotattributes, :clims, u)
-    z = fixaxis!(plotattributes, z, :z)
-    append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    if get(plotattributes, :seriestype, :nothing) ∈ (:heatmap, :surface)
+        ustripattribute!(plotattributes, :clims, u)
+        z = fixaxis!(plotattributes, z, :z)
+        append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    else # plot(z::Matrix)
+        z = fixaxis!(plotattributes, z, :y)
+        append_unit_if_needed!(plotattributes, :y, u)
+    end
     z
 end
-=#
 
 # Recipe for vectors of vectors
 @recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
