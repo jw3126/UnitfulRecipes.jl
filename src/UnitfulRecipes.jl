@@ -50,9 +50,19 @@ const AVec = AbstractVector
 const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
+    ustripattribute!(plotattributes, :clims, u)
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
     x, y, z
+end
+
+# Recipe for (z::Surface) types
+@recipe function f(z::AMat{T}) where T <: Quantity
+    u = get(plotattributes, :zunit, unit(eltype(z)))
+    ustripattribute!(plotattributes, :clims, u)
+    z = fixaxis!(plotattributes, z, :z)
+    append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    z
 end
 
 # Recipe for vectors of vectors
