@@ -10,6 +10,12 @@ xseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[
 yseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:y]
 zseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:z]
 
+@testset "heatmap" begin
+   x = (1:3)m
+   @test_broken heatmap(x*x', clims=(1m^2,2m^2)) isa Plots.Plot # todo
+   @test heatmap(1:3, (1:3)*m, x*x', clims=(1m^2,3m^2)) isa Plots.Plot
+end
+
 @testset "plot(y)" begin
     y = rand(3)m
 
