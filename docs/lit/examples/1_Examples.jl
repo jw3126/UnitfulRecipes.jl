@@ -106,18 +106,22 @@ plot(x, y, ylims=(-1,2), xticks=1:3:length(x))
 x, y = rand(10,3)*u"m", rand(10,3)*u"g"
 plot(x, y)
 
-# Or vectors of vectors (of potnetially different lengths)
+# Or vectors of vectors (of potentially different lengths)
 
 x, y = [rand(10), rand(15), rand(20)]*u"m", [rand(10), rand(15), rand(20)]*u"g"
 plot(x, y)
 
-# ## 3D
+# ## 3D and heatmaps
 
-# It works in 3D
+# It works in 3D and for heatmaps
 
 x, y = rand(10)*u"km", rand(10)*u"hr"
 z = x ./ y
 plot(x, y, z)
+
+# and colorbar limits can have units
+
+heatmap((1:5)u"μs", 1:4, rand(5,4)u"m", clims=(0u"m", 2u"m"))
 
 # ## Scatter plots
 
