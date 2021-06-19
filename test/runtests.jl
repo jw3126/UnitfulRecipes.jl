@@ -133,7 +133,7 @@ end
     end
 end
 
-@testset "Moar plots" begin
+@testset "More plots" begin
     @testset "data as $dtype" for dtype in [:Vectors, :Matrices, Symbol("Vectors of vectors")]
         if dtype == :Vectors
             x, y, z = randn(10), randn(10), randn(10)

@@ -56,11 +56,12 @@ const AMat{T} = AbstractArray{T,2} where T
     x, y, z
 end
 
-# Recipe for heatmap(z), surface(z)
+# Recipe for contour|heatmap|surface(z)
 # Caution: also gets use for plot(z::Matrix)
 @recipe function f(z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
-    if get(plotattributes, :seriestype, :nothing) ∈ (:heatmap, :surface)
+    clims_types = (:contour, :contourf, :heatmap, :surface)
+    if get(plotattributes, :seriestype, :nothing) ∈ clims_types
         ustripattribute!(plotattributes, :clims, u)
         z = fixaxis!(plotattributes, z, :z)
         append_unit_if_needed!(plotattributes, :colorbar_title, u)

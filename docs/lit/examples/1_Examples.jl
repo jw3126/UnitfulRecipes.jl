@@ -133,6 +133,7 @@ scatter(x, y, zcolor=z, clims=(5,20).*unit(eltype(z)))
 
 scatter(x, y, z, zcolor=z)
 
+
 # ## Contour plots
 
 # for contours plots
@@ -141,9 +142,10 @@ x, y = (1:0.01:2)*u"m", (1:0.02:2)*u"s"
 z = x' ./ y
 contour(x, y, z)
 
-# and filled contours
+# and filled contours, again with optional clims units
 
-contourf(x, y, z)
+contourf(x, y, z, clims=(0u"m/s", 3u"m/s"))
+
 
 # ## Error bars
 
