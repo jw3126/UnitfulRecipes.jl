@@ -4,12 +4,20 @@ using RecipesBase
 using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
 export @P_str
 
+const clims_types = (:contour, :contourf, :heatmap, :surface)
+
 #==========
 Main recipe
 ==========#
 
 @recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
     axisletter = plotattributes[:letter]   # x, y, or z
+    if (axisletter == :z) &&
+        get(plotattributes, :seriestype, :nothing) ∈ clims_types
+        u = get(plotattributes, :zunit, unit(eltype(x)))
+        ustripattribute!(plotattributes, :clims, u)
+        append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    end
     fixaxis!(plotattributes, x, axisletter)
 end
 
@@ -56,6 +64,7 @@ const AMat{T} = AbstractArray{T,2} where T
     x, y, z
 end
 
+#=
 # Recipe for contour|heatmap|surface(z)
 # Caution: also gets use for plot(z::Matrix)
 @recipe function f(z::AMat{T}) where T <: Quantity
@@ -71,6 +80,7 @@ end
     end
     z
 end
+=#
 
 # Recipe for vectors of vectors
 @recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
