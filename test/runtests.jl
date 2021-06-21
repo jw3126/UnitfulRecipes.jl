@@ -18,7 +18,7 @@ end
    x = (1:3)m
    @isplot heatmap(x*x', clims=(1, 7)) # unitless
    @isplot heatmap(x*x', clims=(2m^2, 8m^2)) # units
-   @isplot heatmap(x*x', clims=(3e6u"μm^2", 7e-6u"km^2")) # conversion
+   @isplot heatmap(x*x', clims=(2e6u"mm^2", 7e-6u"km^2")) # conversion
    @isplot heatmap(1:3, (1:3)m, x*x', clims=(1m^2, 7e-6u"km^2")) # mixed
 end
 
