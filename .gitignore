@@ -5,7 +5,6 @@
 .DS_Store
 Manifest.toml
 dev/
-.*.*.swp
 
 # for docs
 docs/Manifest.toml
