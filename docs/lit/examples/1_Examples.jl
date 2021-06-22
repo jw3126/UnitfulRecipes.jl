@@ -111,15 +111,17 @@ plot(x, y)
 x, y = [rand(10), rand(15), rand(20)]*u"m", [rand(10), rand(15), rand(20)]*u"g"
 plot(x, y)
 
-# ## 3D and heatmaps
+# ## 3D
 
-# It works in 3D and for heatmaps
+# It works in 3D
 
 x, y = rand(10)*u"km", rand(10)*u"hr"
 z = x ./ y
 plot(x, y, z)
 
-# and colorbar limits can have units
+# ## Heatmaps
+
+# For which colorbar limits (`clims`) can have units
 
 heatmap((1:5)u"μs", 1:4, rand(5,4)u"m", clims=(0u"m", 2u"m"))
 
@@ -142,7 +144,7 @@ x, y = (1:0.01:2)*u"m", (1:0.02:2)*u"s"
 z = x' ./ y
 contour(x, y, z)
 
-# and filled contours, again with optional clims units
+# and filled contours, again with optional `clims` units
 
 contourf(x, y, z, clims=(0u"m/s", 3u"m/s"))
 
