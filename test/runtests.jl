@@ -10,6 +10,18 @@ xseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[
 yseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:y]
 zseries(plt, idx=length(plt.series_list)) = plt.series_list[idx].plotattributes[:z]
 
+macro isplot(ex) # @isplot macro to streamline tests
+    :(@test $(esc(ex)) isa Plots.Plot)
+end
+
+@testset "heatmap" begin
+   x = (1:3)m
+   @isplot heatmap(x*x', clims=(1, 7)) # unitless
+   @isplot heatmap(x*x', clims=(2m^2, 8m^2)) # units
+   @isplot heatmap(x*x', clims=(2e6u"mm^2", 7e-6u"km^2")) # conversion
+   @isplot heatmap(1:3, (1:3)m, x*x', clims=(1m^2, 7e-6u"km^2")) # mixed
+end
+
 @testset "plot(y)" begin
     y = rand(3)m
 
@@ -127,7 +139,7 @@ end
     end
 end
 
-@testset "Moar plots" begin
+@testset "More plots" begin
     @testset "data as $dtype" for dtype in [:Vectors, :Matrices, Symbol("Vectors of vectors")]
         if dtype == :Vectors
             x, y, z = randn(10), randn(10), randn(10)

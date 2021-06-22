@@ -106,7 +106,7 @@ plot(x, y, ylims=(-1,2), xticks=1:3:length(x))
 x, y = rand(10,3)*u"m", rand(10,3)*u"g"
 plot(x, y)
 
-# Or vectors of vectors (of potnetially different lengths)
+# Or vectors of vectors (of potentially different lengths)
 
 x, y = [rand(10), rand(15), rand(20)]*u"m", [rand(10), rand(15), rand(20)]*u"g"
 plot(x, y)
@@ -119,6 +119,12 @@ x, y = rand(10)*u"km", rand(10)*u"hr"
 z = x ./ y
 plot(x, y, z)
 
+# ## Heatmaps
+
+# For which colorbar limits (`clims`) can have units
+
+heatmap((1:5)u"μs", 1:4, rand(5,4)u"m", clims=(0u"m", 2u"m"))
+
 # ## Scatter plots
 
 # You can do scatter plots
@@ -129,6 +135,7 @@ scatter(x, y, zcolor=z, clims=(5,20).*unit(eltype(z)))
 
 scatter(x, y, z, zcolor=z)
 
+
 # ## Contour plots
 
 # for contours plots
@@ -137,9 +144,10 @@ x, y = (1:0.01:2)*u"m", (1:0.02:2)*u"s"
 z = x' ./ y
 contour(x, y, z)
 
-# and filled contours
+# and filled contours, again with optional `clims` units
 
-contourf(x, y, z)
+contourf(x, y, z, clims=(0u"m/s", 3u"m/s"))
+
 
 # ## Error bars
 
