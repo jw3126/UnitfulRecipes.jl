@@ -263,3 +263,10 @@ end
     @test xguide(plt) == "mm"
     @test yguide(plt) == "s"
 end
+
+# https://github.com/jw3126/UnitfulRecipes.jl/issues/60
+@testset "Start with empty plot" begin
+    plt = plot()
+    plot!(plt, (1:3)m)
+    @test yguide(plt) == "m"
+end

@@ -33,7 +33,7 @@ function fixaxis!(attr, x, axisletter)
     u = pop!(attr, axisunit, unit(eltype(x)))
     # If the subplot already exists, get unit from its axis label
     sp = get(attr, :subplot, 1)
-    if sp ≤ length(attr[:plot_object])
+    if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
         label = attr[:plot_object][sp][axis][:guide]
         if label isa UnitfulString
             u = label.unit
