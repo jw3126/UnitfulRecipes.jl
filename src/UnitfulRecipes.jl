@@ -31,7 +31,7 @@ function fixaxis!(attr, x, axisletter)
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
     u = pop!(attr, axisunit, unit(eltype(x)))
-    # If the subplot already exists, get unit from its axis label
+    # If the subplot already exists with data, get its unit
     sp = get(attr, :subplot, 1)
     if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
         label = attr[:plot_object][sp][axis][:guide]
