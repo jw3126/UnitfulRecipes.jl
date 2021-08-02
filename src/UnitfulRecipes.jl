@@ -70,6 +70,12 @@ end
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
+# Recipe for bare units
+@recipe function f(::Type{T}, x::T) where T <: Units
+    primary := false
+    Float64[]*x
+end
+
 # Recipes for functions
 @recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
     x, f.(x)

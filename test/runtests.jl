@@ -236,6 +236,15 @@ end
     @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
 end
 
+@testset "Bare units" begin
+    plt = plot(u"m", u"s")
+    @test xguide(plt) == "m"
+    @test yguide(plt) == "s"
+    @test iszero(length(plt.series_list[1].plotattributes[:y]))
+    hline!(plt, [1u"hr"])
+    @test yguide(plt) == "s"
+end
+
 @testset "Inset subplots" begin
     x1 = rand(10) * u"m"
     x2 = rand(10) * u"s"
