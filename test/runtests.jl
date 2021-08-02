@@ -134,8 +134,8 @@ end
         pl = plot(f, m)
         @test xguide(pl) == string(m)
         @test yguide(pl) == string(m^2)
-        f(x) = exp(x/(3m))
-        @test plot(f, u"m") isa Plots.Plot
+        g(x) = exp(x/(3m))
+        @test plot(g, u"m") isa Plots.Plot
     end
 end
 
