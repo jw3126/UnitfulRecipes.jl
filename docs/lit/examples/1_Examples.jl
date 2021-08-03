@@ -172,3 +172,10 @@ plot(t, U; xlabel="t", ylabel="U", st=:scatter, label="Samples")
 plot!(model, t; st=:scatter, label="Noise removed")
 plot!(model, u"s"; label="True function")
 
+# ## Initializing empty plot
+#
+# A plot can be initialized with unitful axes but without datapoints by
+# simply supplying the unit:
+
+plot(u"m", u"s")
+plot!([2u"ft"], [1u"minute"], st=:scatter)

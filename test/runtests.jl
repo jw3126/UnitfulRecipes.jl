@@ -134,8 +134,8 @@ end
         pl = plot(f, m)
         @test xguide(pl) == string(m)
         @test yguide(pl) == string(m^2)
-        f(x) = exp(x/(3m))
-        @test plot(f, u"m") isa Plots.Plot
+        g(x) = exp(x/(3m))
+        @test plot(g, u"m") isa Plots.Plot
     end
 end
 
@@ -234,6 +234,15 @@ end
     @test yguide(plt) == "m"
     @test yseries(plt) ≈ ustrip.(x2) / 100
     @test_throws DimensionError plot!(plt, x3) # can't place seconds on top of meters!
+end
+
+@testset "Bare units" begin
+    plt = plot(u"m", u"s")
+    @test xguide(plt) == "m"
+    @test yguide(plt) == "s"
+    @test iszero(length(plt.series_list[1].plotattributes[:y]))
+    hline!(plt, [1u"hr"])
+    @test yguide(plt) == "s"
 end
 
 @testset "Inset subplots" begin
