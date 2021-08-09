@@ -160,6 +160,15 @@ y = @. (2 + sin(x / (GeV/c))) * 0.4GeV/c^2 # a sine to make it pretty
 yerror = 10.9MeV/c^2 * exp.(randn(length(x))) # some noise for pretty again
 plot(x, y; yerror, title="My unitful data with yerror bars", lab="")
 
+
+# ## Ribbon
+
+# You can use units with the `ribbon` feature:
+
+x = 1:10
+plot(x, -x.^2 .* 1u"m", ribbon=500u"cm")
+
+
 # ## Functions
 #
 # In order to plot a unitful function on a unitful axis, supply as a second argument a

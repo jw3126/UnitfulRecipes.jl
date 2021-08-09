@@ -273,6 +273,16 @@ end
     @test yguide(plt) == "s"
 end
 
+@testset "Ribbon" begin
+    x = rand(10) * u"mm"
+    y = rand(10) * u"s"
+    ribbon = rand(10) * u"ms"
+    plt =  plot(x, y, ribbon=ribbon)
+    @test plt isa Plots.Plot
+    @test xguide(plt) == "mm"
+    @test yguide(plt) == "s"
+end
+
 # https://github.com/jw3126/UnitfulRecipes.jl/issues/60
 @testset "Start with empty plot" begin
     plt = plot()
