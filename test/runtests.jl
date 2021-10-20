@@ -283,6 +283,16 @@ end
     @test yguide(plt) == "s"
 end
 
+@testset "Fillrange" begin
+    x = rand(10) * u"mm"
+    y = rand(10) * u"s"
+    fillrange = rand(10) * u"ms"
+    plt =  plot(x, y, fillrange=fillrange)
+    @test plt isa Plots.Plot
+    @test xguide(plt) == "mm"
+    @test yguide(plt) == "s"
+end
+
 # https://github.com/jw3126/UnitfulRecipes.jl/issues/60
 @testset "Start with empty plot" begin
     plt = plot()

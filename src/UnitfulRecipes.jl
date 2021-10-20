@@ -49,6 +49,9 @@ function fixaxis!(attr, x, axisletter)
     if (axisletter == :y) && haskey(attr, :ribbon)
         ustripattribute!(attr, :ribbon, u)
     end
+    if (axisletter == :y) && haskey(attr, :fillrange)
+        ustripattribute!(attr, :fillrange, u)
+    end
     fixmarkercolor!(attr)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
