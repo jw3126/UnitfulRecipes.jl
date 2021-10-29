@@ -46,10 +46,8 @@ function fixaxis!(attr, x, axisletter)
     ustripattribute!(attr, axislims, u)
     ustripattribute!(attr, axisticks, u)
     ustripattribute!(attr, err, u)
-    if (axisletter == :y) && haskey(attr, :ribbon)
+    if (axisletter == :y)
         ustripattribute!(attr, :ribbon, u)
-    end
-    if (axisletter == :y) && haskey(attr, :fillrange)
         ustripattribute!(attr, :fillrange, u)
     end
     fixmarkercolor!(attr)
