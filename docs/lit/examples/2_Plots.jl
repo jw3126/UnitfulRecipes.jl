@@ -9,7 +9,7 @@
 #md #     These examples are available as Jupyter notebooks.
 #md #     You can execute them online with [binder](https://mybinder.org/) or just view them with [nbviewer](https://nbviewer.jupyter.org/) by clicking on the badges above!
 
-# These examples were slightly modified from some of [the GR examples in the Plots.jl documentation](http://docs.juliaplots.org/latest/examples/gr/) and can be used as both a tutorial or as a series of test for the UnitfulRecipes package
+# These examples were slightly modified from some of [the examples in the Plots.jl documentation](https://github.com/JuliaPlots/Plots.jl/blob/master/src/examples.jl) and can be used as both a tutorial or as a series of test for the UnitfulRecipes package
 # (they are essentially the same except we have added some units to the data).
 
 # First we need to tell Julia we are using Plots, Unitful, and UnitfulRecipes
@@ -74,6 +74,35 @@ styles = reshape(styles, 1, length(styles))
 n = length(styles)
 y = cumsum(randn(20, n), dims=1) * u"km"
 plot(y, line=(5, styles), label=map(string, styles), legendtitle="linestyle")
+
+
+# ## Ribbons
+#
+# Ribbons can be added to lines via the `ribbon` keyword;
+# you can pass:
+#* a single Array (for symmetric ribbons)
+#* a Function
+#* or a number.
+#Currently unsupported: a tuple of arrays (upper and lower bounds)
+#
+x = y = (0:10)*u"m"
+plot(
+    #plot((0:10)*u"m"; ribbon = (LinRange(0, 2, 11)*u"m", LinRange(0, 1, 11)*u"m")),
+    plot(x,y; ribbon = (0:0.5:5)*u"m", label = "Vector"),
+    plot(x,y; ribbon = sqrt, label = "Function"),
+    plot(x,y; ribbon = 1u"m", label = "Constant"), link=:all
+)
+
+# ## Fillrange
+# the fillrange keyword defines a second line and fills between it and the y data. 
+# Note: ribbons are fillranges
+x = y = (0:10)*u"m"
+plot( 
+    plot(x,y; fillrange = (0:0.5:5)*u"m", label = "Vector"),
+    plot(x,y; fillrange = sin, label = "Function"),
+    plot(x,y; fillrange = 0u"m", label = "Constant"), link = :all
+)
+
 
 # ## Marker types
 
