@@ -2,6 +2,7 @@ module UnitfulRecipes
 
 using RecipesBase
 using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
+using Infiltrator
 export @P_str
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
@@ -12,11 +13,12 @@ Main recipe
 
 @recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
     axisletter = plotattributes[:letter]   # x, y, or z
-    if (axisletter == :z) &&
-        get(plotattributes, :seriestype, :nothing) ∈ clims_types
-        u = get(plotattributes, :zunit, unit(eltype(x)))
-        ustripattribute!(plotattributes, :clims, u)
-        append_unit_if_needed!(plotattributes, :colorbar_title, u)
+    if (axisletter == :z) && get(plotattributes, :seriestype, :nothing) ∈ clims_types
+        # I don't know why fill_z gets turned into a Vector, it needs to be reshaped back
+        plotattributes[:fill_z] = reshape(
+             get(plotattributes, :fill_z, x),
+             size(x)...
+            )
     end
     fixaxis!(plotattributes, x, axisletter)
 end
@@ -27,42 +29,41 @@ function fixaxis!(attr, x, axisletter)
     axislims = Symbol(axisletter, :lims)   # xlims, ylims, zlims
     axisticks = Symbol(axisletter, :ticks) # xticks, yticks, zticks
     err = Symbol(axisletter, :error)       # xerror, yerror, zerror
-    axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
-    axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
-    # Get the unit
-    u = pop!(attr, axisunit, unit(eltype(x)))
-    # If the subplot already exists with data, get its unit
-    sp = get(attr, :subplot, 1)
-    if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
-        label = attr[:plot_object][sp][axis][:guide]
-        if label isa UnitfulString
-            u = label.unit
-        end
-        # If label was not given as an argument, reuse
-        get!(attr, axislabel, label)
-    end
+
+    u = fixlabel!(attr, axisletter, unit(first(x)))
     # Fix the attributes: labels, lims, ticks, marker/line stuff, etc.
     append_unit_if_needed!(attr, axislabel, u)
     ustripattribute!(attr, axislims, u)
     ustripattribute!(attr, axisticks, u)
     ustripattribute!(attr, err, u)
-    fixmarkercolor!(attr)
+    fixcolors!(attr)
     fixmarkersize!(attr)
-    fixlinecolor!(attr)
     # Strip the unit
-    ustrip.(u, x)
+    return ustrip.(u, x)
 end
 
-# Recipe for (x::AVec, y::AVec, z::Surface) types
-const AVec = AbstractVector
-const AMat{T} = AbstractArray{T,2} where T
-@recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
-    u = get(plotattributes, :zunit, unit(eltype(z)))
-    ustripattribute!(plotattributes, :clims, u)
-    z = fixaxis!(plotattributes, z, :z)
-    append_unit_if_needed!(plotattributes, :colorbar_title, u)
-    x, y, z
+function fixlabel!(attr, axisletter, dataunit)
+    u = pop!(attr, Symbol(axisletter,:unit), dataunit)
+    sp = get(attr, :subplot, 1)
+    if axisletter == :c
+        labelname = :colorbar_title
+        axisname = nothing
+    else
+        labelname = :guide
+        axisname = Symbol(axisletter, :axis)
+    end
+    if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
+        label = getlabel(attr, sp, axisname, labelname)
+        if label isa UnitfulString
+            u = label.unit
+        end
+        get!(attr, labelname, label)
+    end
+    return u
 end
+getlabel(attr, sp, axisname, labelname) = attr[:plot_object][sp][axisname][labelname]
+getlabel(attr, sp, axisname::Nothing, labelname) = attr[:plot_object][sp][labelname]
+
 
 # Recipe for vectors of vectors
 @recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
@@ -75,6 +76,9 @@ end
     primary := false
     Float64[]*x
 end
+
+const AVec = AbstractVector
+const AMat{T} = AbstractArray{T,2} where T
 
 # Recipes for functions
 @recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
@@ -122,13 +126,15 @@ Attribute fixing
 ===============#
 
 # Markers / lines
-function fixmarkercolor!(attr)
-    u = ustripattribute!(attr, :marker_z)
-    ustripattribute!(attr, :clims, u)
-    u == Unitful.NoUnits || append_unit_if_needed!(attr, :colorbar_title, u)
+function fixcolors!(attr)
+    u = unit(first(get(attr, :line_z, get(attr, :marker_z, get(attr, :fill_z, [1])))))
+    u = fixlabel!(attr, :c, u)
+    for key in [:line_z, :marker_z, :fill_z, :clims]
+        ustripattribute!(attr, key, u)
+    end
+    append_unit_if_needed!(attr, :colorbar_title, u)
 end
 fixmarkersize!(attr) = ustripattribute!(attr, :markersize)
-fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
 
 # strip unit from attribute[key]
 function ustripattribute!(attr, key)
