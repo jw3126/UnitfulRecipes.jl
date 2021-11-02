@@ -87,7 +87,6 @@ plot(y, line=(5, styles), label=map(string, styles), legendtitle="linestyle")
 
 x = y = (0:10)*u"m"
 plot(
-    #plot((0:10)*u"m"; ribbon = (LinRange(0, 2, 11)*u"m", LinRange(0, 1, 11)*u"m")),
     plot(x,y; ribbon = (0:0.5:5)*u"m", label = "Vector"),
     plot(x,y; ribbon = sqrt, label = "Function"),
     plot(x,y; ribbon = 1u"m", label = "Constant"),
