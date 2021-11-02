@@ -75,34 +75,36 @@ n = length(styles)
 y = cumsum(randn(20, n), dims=1) * u"km"
 plot(y, line=(5, styles), label=map(string, styles), legendtitle="linestyle")
 
-
 # ## Ribbons
-#
+
 # Ribbons can be added to lines via the `ribbon` keyword;
 # you can pass:
-#* a single Array (for symmetric ribbons)
-#* a Function
-#* or a number.
-#Currently unsupported: a tuple of arrays (upper and lower bounds)
+# * an array (for symmetric ribbons)
+# * a function
+# * a number
+# (Tuple of arrays for upper and lower bounds are currently unsupported.)
 #
+
 x = y = (0:10)*u"m"
 plot(
-    #plot((0:10)*u"m"; ribbon = (LinRange(0, 2, 11)*u"m", LinRange(0, 1, 11)*u"m")),
     plot(x,y; ribbon = (0:0.5:5)*u"m", label = "Vector"),
     plot(x,y; ribbon = sqrt, label = "Function"),
-    plot(x,y; ribbon = 1u"m", label = "Constant"), link=:all
+    plot(x,y; ribbon = 1u"m", label = "Constant"),
+    link=:all
 )
 
 # ## Fillrange
-# the fillrange keyword defines a second line and fills between it and the y data. 
-# Note: ribbons are fillranges
+
+# The fillrange keyword defines a second line and fills between it and the y data. 
+# Note: ribbons are fillranges.
+
 x = y = (0:10)*u"m"
 plot( 
     plot(x,y; fillrange = (0:0.5:5)*u"m", label = "Vector"),
     plot(x,y; fillrange = sin, label = "Function"),
-    plot(x,y; fillrange = 0u"m", label = "Constant"), link = :all
+    plot(x,y; fillrange = 0u"m", label = "Constant"),
+    link = :all
 )
-
 
 # ## Marker types
 
