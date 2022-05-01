@@ -1,7 +1,7 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
+using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units, LogScaled, logunit, MixedUnits, Level, Gain
 export @P_str
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
@@ -10,11 +10,12 @@ const clims_types = (:contour, :contourf, :heatmap, :surface)
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
+@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity, <:LogScaled}}
     axisletter = plotattributes[:letter]   # x, y, or z
     if (axisletter == :z) &&
         get(plotattributes, :seriestype, :nothing) ∈ clims_types
-        u = get(plotattributes, :zunit, unit(eltype(x)))
+        # u = get(plotattributes, :zunit, unit(eltype(x)))
+        u = get(plotattributes, :zunit, eltype(x) <: LogScaled ? logunit(eltype(x)) : unit(eltype(x)))
         ustripattribute!(plotattributes, :clims, u)
         append_unit_if_needed!(plotattributes, :colorbar_title, u)
     end
@@ -30,7 +31,7 @@ function fixaxis!(attr, x, axisletter)
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
-    u = pop!(attr, axisunit, unit(eltype(x)))
+    u = pop!(attr, axisunit, eltype(x) <: LogScaled ? logunit(eltype(x)) : unit(eltype(x)))
     # If the subplot already exists with data, get its unit
     sp = get(attr, :subplot, 1)
     if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
@@ -54,14 +55,20 @@ function fixaxis!(attr, x, axisletter)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
     # Strip the unit
-    ustrip.(u, x)
+    if eltype(x) <: Level
+        ustrip(x)
+    elseif eltype(x) <: Gain
+        getfield.(x, :val)
+    else
+        ustrip.(u, x)
+    end
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
 const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
-    u = get(plotattributes, :zunit, unit(eltype(z)))
+    u = get(plotattributes, :zunit, eltype(z) <: LogScaled ? logunit(eltype(z)) : unit(eltype(z)))
     ustripattribute!(plotattributes, :clims, u)
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
@@ -69,7 +76,7 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity, <:LogScaled}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
@@ -81,19 +88,19 @@ end
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity, <:LogScaled}}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity, <:LogScaled}}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity, <:LogScaled}}
     x, y, f.(x',y)
 end
-@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity, <:LogScaled}}
     x, y, f.(x',y)
 end
-@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity, <:LogScaled}}, T2<:AVec{<:Union{Missing,<:Quantity, <:LogScaled}}}
     x, y, f.(x',y)
 end
 @recipe function f(f::Function, u::Units)
@@ -138,8 +145,16 @@ fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
 function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
-        u = unit(eltype(v))
-        attr[key] = ustrip.(u, v)
+        if eltype(v) <: Level
+            u = logunit(eltype(v))
+            attr[key] = ustrip(v)
+        elseif eltype(v) <: Gain
+            u = logunit(eltype(v))
+            attr[key] = v.val
+        else
+            u = unit(eltype(v))
+            attr[key] = ustrip.(u, v)
+        end
         return u
     else
         return Unitful.NoUnits
@@ -149,7 +164,11 @@ end
 function ustripattribute!(attr, key, u)
     if haskey(attr, key)
         v = attr[key]
-        if eltype(v) <: Quantity
+        if eltype(v) <: Level
+            attr[key] = ustrip(v)
+        elseif eltype(v) <: Gain
+            attr[key] = v.val
+        elseif eltype(v) <: Quantity
             attr[key] = ustrip.(u, v)
         end
     end
@@ -198,7 +217,7 @@ end
 Append unit to labels when appropriate
 =====================================#
 
-function append_unit_if_needed!(attr, key, u::Unitful.Units)
+function append_unit_if_needed!(attr, key, u::Union{Unitful.Units, Unitful.MixedUnits})
     label = get(attr, key, nothing)
     append_unit_if_needed!(attr, key, label, u)
 end
