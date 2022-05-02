@@ -1,7 +1,8 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units, LogScaled, logunit, MixedUnits, Level, Gain
+using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
+using Unitful: LogScaled, logunit, MixedUnits, Level, Gain, uconvert
 export @P_str
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
@@ -31,7 +32,7 @@ function fixaxis!(attr, x, axisletter)
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
-    u = pop!(attr, axisunit, eltype(x) <: LogScaled ? logunit(eltype(x)) : unit(eltype(x)))
+    u = pop!(attr, axisunit, _unit(x))
     # If the subplot already exists with data, get its unit
     sp = get(attr, :subplot, 1)
     if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
@@ -55,20 +56,14 @@ function fixaxis!(attr, x, axisletter)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
     # Strip the unit
-    if eltype(x) <: Level
-        ustrip(x)
-    elseif eltype(x) <: Gain
-        getfield.(x, :val)
-    else
-        ustrip.(u, x)
-    end
+    _ustrip.(u, x)
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
 const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
-    u = get(plotattributes, :zunit, eltype(z) <: LogScaled ? logunit(eltype(z)) : unit(eltype(z)))
+    u = get(plotattributes, :zunit, _unit(z))
     ustripattribute!(plotattributes, :clims, u)
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
@@ -145,16 +140,8 @@ fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
 function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
-        if eltype(v) <: Level
-            u = logunit(eltype(v))
-            attr[key] = ustrip(v)
-        elseif eltype(v) <: Gain
-            u = logunit(eltype(v))
-            attr[key] = v.val
-        else
-            u = unit(eltype(v))
-            attr[key] = ustrip.(u, v)
-        end
+        u = _unit(eltype(v))
+        attr[key] = _ustrip.(u, v)
         return u
     else
         return Unitful.NoUnits
@@ -164,12 +151,8 @@ end
 function ustripattribute!(attr, key, u)
     if haskey(attr, key)
         v = attr[key]
-        if eltype(v) <: Level
-            attr[key] = ustrip(v)
-        elseif eltype(v) <: Gain
-            attr[key] = v.val
-        elseif eltype(v) <: Quantity
-            attr[key] = ustrip.(u, v)
+        if eltype(v) <: Quantity
+            attr[key] = _ustrip.(u, v)
         end
     end
     u
@@ -260,5 +243,36 @@ const UNIT_FORMATS = Dict(
                          )
 
 format_unit_label(l, u, f::Symbol) = format_unit_label(l,u,UNIT_FORMATS[f])
+
+#=====================================
+Placeholder functions for consistent
+=====================================#
+
+function _ustrip(u, x)
+    if eltype(x) <: Level
+        ustrip(uconvert(u, x))
+    elseif eltype(x) <: Gain
+        getfield(uconvert(u, x), :val)
+    elseif u isa MixedUnits
+        x = uconvert(u, x) # convert Quantity -> LogScaled
+        if eltype(x) <: Level
+            ustrip(uconvert(u, x))
+        elseif eltype(x) <: Gain
+            getfield(uconvert(u, x), :val)
+        end
+    else
+        ustrip(u, x)
+    end
+end
+
+
+function _unit(x::Type{Z}) where Z <:Union{Missing, Quantity, LogScaled}
+    x <: LogScaled ? logunit(x) : unit(x)
+end
+
+function _unit(x)
+    x = eltype(x)
+    x <: LogScaled ? logunit(x) : unit(x)
+end
 
 end # module
