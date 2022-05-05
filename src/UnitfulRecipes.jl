@@ -265,14 +265,9 @@ function _ustrip(u, x)
     end
 end
 
-
-function _unit(x::Type{Z}) where Z <:Union{Missing, Quantity, LogScaled}
-    x <: LogScaled ? logunit(x) : unit(x)
-end
-
 function _unit(x)
-    x = eltype(x)
-    x <: LogScaled ? logunit(x) : unit(x)
+    t = eltype(x)
+    u = t <: LogScaled ? logunit(t) : unit(t)
 end
 
 end # module
