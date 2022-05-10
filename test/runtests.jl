@@ -1,5 +1,6 @@
 using Test, Unitful, Plots
 using Unitful: m, s, cm, DimensionError
+using Unitful: dBm, dB, dBV, V, Hz, B, MHz
 using UnitfulRecipes
 
 # Some helper functions to access the subplot labels and the series inside each test plot
@@ -298,4 +299,47 @@ end
     plt = plot()
     plot!(plt, (1:3)m)
     @test yguide(plt) == "m"
+end
+
+@testset "LogScaled plots" begin
+    x, y, dbv, v = randn(3)*dBm, randn(3)*dB, rand(3)*dBV, rand(3)V
+    
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "dBm"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "dB"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+        plot(x, dbv)
+        @test yseries(plot!(x, v)) ≈ ustrip(uconvert.(u"dBV", v))
+        plot(x, v)
+        @test yseries(plot!(x, dbv)) ≈ ustrip(uconvert.(u"V", dbv))
+    end
+
+    @testset "labels" begin
+        @test xguide(plot(x, y, xlabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, ylabel=P"hello")) == "hello"
+        @test xguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+    end  
+end
+
+@testset "mixed Log units" begin
+    x, y, x1, y1 = randn(3)*dB/Hz, randn(3)*dB*m, rand(3)*B/MHz, rand(3)*B*cm
+    
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "dB Hz⁻¹"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "dB m"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+    end
+    @testset "plot!" begin
+        plot(x, y)
+        @test xseries(plot!(x1, y)) ≈ ustrip(ustrip(uconvert.(u"dB/Hz", x1)))
+        @test yseries(plot!(x1, y1)) ≈ ustrip(ustrip(uconvert.(u"dB*m", y1)))
+    end
+
 end
