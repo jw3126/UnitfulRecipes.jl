@@ -331,7 +331,8 @@ end
     x, y, x1, y1 = randn(3)*dB/Hz, randn(3)*dB*m, rand(3)*B/MHz, rand(3)*B*cm
     
     @testset "no keyword argument" begin
-        @test xguide(plot(x,y)) == "dB Hz⁻¹"
+        dbhz = Sys.isapple() ? "dB Hz⁻¹" : "dB Hz^-1"  # expect fancy exponent or not?
+        @test xguide(plot(x,y)) ==  dbhz
         @test xseries(plot(x,y)) ≈ ustrip.(x)
         @test yguide(plot(x,y)) == "dB m"
         @test yseries(plot(x,y)) ≈ ustrip.(y)
