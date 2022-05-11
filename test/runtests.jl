@@ -344,3 +344,19 @@ end
     end
 
 end
+
+@testset "fullunit methods test" begin
+    @test @inferred(fullunit(1m^2)) === m^2
+    @test @inferred(fullunit(1dB)) === dB
+    @test @inferred(fullunit(1dBm)) === dBm
+    @test @inferred(fullunit(1dB*m)) === dB*m
+    @test @inferred(fullunit(typeof(1m^2))) === m^2
+    @test @inferred(fullunit(typeof(1dB))) === dB
+    @test @inferred(fullunit(typeof(1dBm))) === dBm
+    @test @inferred(fullunit(typeof(1dB*m))) === dB*m
+    @test @inferred(fullunit(Float64)) === NoUnits
+    @test @inferred(fullunit(Union{typeof(1m^2),Missing})) === m^2
+    @test @inferred(fullunit(Union{Float64,Missing})) === NoUnits
+    @test @inferred(fullunit(missing)) === missing
+    @test @inferred(fullunit(Missing)) === missing
+end
