@@ -1,5 +1,5 @@
 using Test, Unitful, Plots
-using Unitful: m, s, cm, DimensionError
+using Unitful: m, s, cm, mm, DimensionError
 using Unitful: dBm, dB, dBV, V, Hz, B, MHz
 using UnitfulRecipes
 
@@ -359,4 +359,16 @@ end
     @test @inferred(fullunit(Union{Float64,Missing})) === NoUnits
     @test @inferred(fullunit(missing)) === missing
     @test @inferred(fullunit(Missing)) === missing
+end
+
+@testset "uwstrip tests" begin
+     # ustrip with type and unit arguments
+     @test @inferred(uwstrip(m, 3.0m)) === 3.0
+     @test @inferred(uwstrip(m, 2mm)) === 1//500
+     @test @inferred(uwstrip(mm, 3.0m)) === 3000.0
+     @test @inferred(uwstrip(NoUnits, 3.0m/1.0m)) === 3.0
+     @test @inferred(uwstrip(NoUnits, 3.0m/1.0cm)) === 300.0
+     @test @inferred(uwstrip(cm, missing)) === missing
+     @test @inferred(uwstrip(NoUnits, missing)) === missing
+     @test_throws DimensionError uwstrip(NoUnits, 3.0m/1.0s)
 end

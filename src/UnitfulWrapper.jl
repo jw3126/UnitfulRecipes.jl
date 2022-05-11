@@ -1,6 +1,6 @@
 using Unitful: Gain, Level, MixedUnits, LogScaled, NoUnits, uconvert
-import Unitful: ustrip
-export fullunit
+using Unitful: ustrip
+export fullunit, uwstrip
 
 #=====
 Extension to Unitful.jl, required to plot LogScaled units and 
@@ -53,9 +53,9 @@ fullunit(x::Missing) = missing
 
 
 #=====
-ustrip(u, x) for logscaled units
+uwstrip(u, x) placeholder for ustrip
 =====#
 # level
-function ustrip(u::T, x::L) where {T<:MixedUnits, L<:Union{Quantity, LogScaled}} 
-    ustrip(uconvert(u, x))
-end
+uwstrip(u::T, x::L) where {T<:MixedUnits, L<:Union{Quantity, LogScaled}}  = ustrip(uconvert(u, x))
+#all other
+uwstrip(u, x) = ustrip(u, x)

@@ -56,7 +56,7 @@ function fixaxis!(attr, x, axisletter)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
     # Strip the unit
-    ustrip.(u, x)
+    uwstrip.(u, x)
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
@@ -141,7 +141,7 @@ function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
         u = fullunit(eltype(v))
-        attr[key] = ustrip.(u, v)
+        attr[key] = uwstrip.(u, v)
         return u
     else
         return Unitful.NoUnits
@@ -152,7 +152,7 @@ function ustripattribute!(attr, key, u)
     if haskey(attr, key)
         v = attr[key]
         if eltype(v) <: Quantity
-            attr[key] = ustrip.(u, v)
+            attr[key] = uwstrip.(u, v)
         end
     end
     u
