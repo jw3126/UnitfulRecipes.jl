@@ -50,6 +50,7 @@ function fixaxis!(attr, x, axisletter)
         ustripattribute!(attr, :ribbon, u)
         ustripattribute!(attr, :fillrange, u)
     end
+    fixaspectratio!(attr, u, axisletter)
     fixmarkercolor!(attr)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
@@ -124,6 +125,20 @@ end
 #===============
 Attribute fixing
 ===============#
+# Aspect ratio
+function fixaspectratio!(attr, u, axisletter)
+    aspect_ratio = get!(attr, :aspect_ratio, :auto)
+    if aspect_ratio in (:auto, :none)
+        return
+    end
+    if aspect_ratio === :equal
+        aspect_ratio = 1
+    end
+    if axisletter === :y
+        u = 1/u
+    end
+    attr[:aspect_ratio] = aspect_ratio/u
+end
 
 # Markers / lines
 function fixmarkercolor!(attr)
