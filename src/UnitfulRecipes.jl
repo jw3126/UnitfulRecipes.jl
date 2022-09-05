@@ -135,9 +135,14 @@ function fixaspectratio!(attr, u, axisletter)
         aspect_ratio = 1
     end
     if axisletter === :y
-        u = 1/u
+        attr[:aspect_ratio] = aspect_ratio*u
+        return
     end
-    attr[:aspect_ratio] = aspect_ratio/u
+    if axisletter === :x
+        attr[:aspect_ratio] = aspect_ratio/u
+        return
+    end
+    return
 end
 
 # Markers / lines
