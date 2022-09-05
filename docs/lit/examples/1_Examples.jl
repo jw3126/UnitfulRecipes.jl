@@ -188,3 +188,24 @@ plot!(model, u"s"; label="True function")
 
 plot(u"m", u"s")
 plot!([2u"ft"], [1u"minute"], st=:scatter)
+
+# ## Aspect ratio
+#
+# Unlike in a normal unitless plot, the aspect ratio of a unitful plot is in turn a unitful
+# number $r$, such that $r\cdot \hat{y}$ would take as much space on the $x$ axis as
+# $\hat{y}$ does on the $y$ axis.
+#
+# By default, `aspect_ratio` is set to `:auto`, which lets you ignore this.
+#
+# Another special value is `:equal`, which (possibly unintuitively) corresponds to $r=1$.
+# Consider a rectangle drawn in a plot with $\mathrm{m}$ on the $x$ axis and
+# $\mathrm{km}$ on the $y$ axis. If the rectangle is
+# $100\;\mathrm{m} \times 0.1\;\mathrm{km}$, `aspect_ratio=:equal` will make it appear
+# square.
+
+plot(
+     plot(randn(10)u"m", randn(10)u"dm"; aspect_ratio=:equal, title=":equal"),
+     plot(randn(10)u"m", randn(10)u"s"; aspect_ratio=2u"m/s",
+          title="\$2\\;\\mathrm{m}/\\mathrm{s}\$"),
+     plot(randn(10)u"m", randn(10); aspect_ratio=5u"m", title="\$5\\;\\mathrm{m}\$")
+    )
