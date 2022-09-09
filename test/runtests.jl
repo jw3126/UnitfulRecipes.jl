@@ -2,7 +2,7 @@ using Test, Unitful, Plots
 using Unitful: m, s, cm, DimensionError
 using UnitfulRecipes
 
-testfile = "$(tempname()).png"
+testfile = "test.png"
 
 # Some helper functions to access the subplot labels and the series inside each test plot
 xguide(plt, idx=length(plt.subplots)) = plt.subplots[idx].attr[:xaxis].plotattributes[:guide]
@@ -299,21 +299,21 @@ end
     plt = plot(
                (1:10)u"m",
                (1:10)u"dm";
-               aspect_ratio = :equal,
+               aspect_ratio=:equal,
               )
     savefig(plt, testfile) # Force a render, to make it evaluate aspect ratio
     @test abs(-(ylims(plt)...)) > 50
     plt = plot(
                (1:10)u"m",
                (1:10)u"dm";
-               aspect_ratio = 2,
+               aspect_ratio=2,
               )
     savefig(plt, testfile)
     @test 25 < abs(-(ylims(plt)...)) < 50
     plt = plot(
                (1:10)u"m",
                (1:10)u"s";
-               aspect_ratio = 1u"m/s",
+               aspect_ratio=1u"m/s",
               )
     savefig(plt, testfile)
     @test 7.5 < abs(-(ylims(plt)...)) < 12.5

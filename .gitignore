@@ -11,3 +11,5 @@ docs/Manifest.toml
 docs/build/
 docs/src/examples/
 docs/src/notebooks/
+
+test/test.png
