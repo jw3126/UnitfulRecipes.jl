@@ -129,11 +129,22 @@ Attribute fixing
 function fixaspectratio!(attr, u, axisletter)
     aspect_ratio = get!(attr, :aspect_ratio, :auto)
     if aspect_ratio in (:auto, :none)
+        # Keep the default behavior (let Plots figure it out)
         return
     end
     if aspect_ratio === :equal
         aspect_ratio = 1
     end
+    #=======================================================================================
+    Implementation example:
+
+    Consider an x axis in `u"m"` and a y axis in `u"s"`, and an `aspect_ratio` in `u"m/s"`.
+    On the first pass, `axisletter` is `:x`, so `aspect_ratio` is converted to `u"m/s"/u"m"
+    = u"s^-1"`. On the second pass, `axisletter` is `:y`, so `aspect_ratio` becomes
+    `u"s^-1"*u"s" = 1`. If at this point `aspect_ratio` is *not* unitless, an error has been
+    made, and the default aspect ratio fixing of Plots throws a `DimensionError` as it tries
+    to compare `0 < 1u"m"`.
+    =======================================================================================#
     if axisletter === :y
         attr[:aspect_ratio] = aspect_ratio*u
         return
