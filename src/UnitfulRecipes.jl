@@ -6,11 +6,17 @@ export @P_str
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
 
+const UMQ = Union{Missing, <:Quantity}
+const AVec = AbstractVector
+const AArr = AbstractArray
+const AArrArrQ = AArr{<:AArr{<:UMQ}}
+const AMat{T} = AArr{T,2} where T
+
 #==========
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
+@recipe function f(::Type{T}, x::T) where T <: AArr{<:UMQ}
     axisletter = plotattributes[:letter]   # x, y, or z
     if (axisletter == :z) &&
         get(plotattributes, :seriestype, :nothing) ∈ clims_types
@@ -59,10 +65,6 @@ function fixaxis!(attr, x, axisletter)
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
-const AVec = AbstractVector
-const AArr = AbstractArray
-const AArrArrQ = AbstractArray{<:AbstractArray{<:Union{Missing,<:Quantity}}}
-const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
     ustripattribute!(plotattributes, :clims, u)
@@ -72,7 +74,7 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
+@recipe function f(::Type{T}, x::T) where T <: AVec{<:AVec{<:UMQ}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
@@ -84,19 +86,19 @@ end
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(f::Function, x::T) where T <: AArr{<:UMQ}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, f::Function) where T <: AArr{<:UMQ}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:UMQ}
     x, y, f.(x',y)
 end
-@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:UMQ}
     x, y, f.(x',y)
 end
-@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:UMQ}, T2<:AVec{<:UMQ}}
     x, y, f.(x',y)
 end
 @recipe function f(f::Function, u::Units)

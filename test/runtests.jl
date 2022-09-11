@@ -111,7 +111,7 @@ end
 end
 
 @testset "With functions" begin
-    x, y = randn(3), randn(3)
+    x, y, α = randn(3), randn(3), (1:5)
     @testset "plot(f, x) / plot(x, f)" begin
         f(x) = x^2
         @test plot(  f, x*m) isa Plots.Plot
@@ -119,6 +119,9 @@ end
         g(x) = x*m # If the unit comes from the function only then it throws
         @test_throws DimensionError plot(x, g) isa Plots.Plot
         @test_throws DimensionError plot(g, x) isa Plots.Plot
+        # a matrix of small angles should give positive `sin`s (otherwise they are probably
+        # interpreted as radians)
+        @test all(>(0), yseries(plot(sin, [α*° 2α*°])))
     end
     @testset "plot(x, y, f)" begin
         f(x,y) = x*y
