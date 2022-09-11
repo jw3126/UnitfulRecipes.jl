@@ -60,6 +60,8 @@ end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
+const AArr = AbstractArray
+const AArrArrQ = AbstractArray{<:AbstractArray{<:Union{Missing,<:Quantity}}}
 const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
     u = get(plotattributes, :zunit, unit(eltype(z)))
@@ -102,6 +104,25 @@ end
     recipedata = RecipesBase.apply_recipe(plotattributes, uf)
     (_, xmin, xmax) = recipedata[1].args
     return f, xmin*u, xmax*u
+end
+@recipe function f(u::Units, f::Function)
+    return f, u
+end
+#=========================================================================
+If x is an array of arrays of quantities, consider those different series.
+No need to dive deeper than this, a plot of arrays of arrays of arrays is
+not implemented in Plots.
+=========================================================================#
+@recipe function f(f::Function, x::AArrArrQ)
+    for s in x
+        @series begin
+            xunit := unit(first(first(x)))
+            f, s
+        end
+    end
+end
+@recipe function f(x::AArrArrQ, f::Function)
+    return f, x
 end
 
 """
