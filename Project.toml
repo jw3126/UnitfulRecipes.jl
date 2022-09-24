@@ -1,6 +1,6 @@
 name = "UnitfulRecipes"
 uuid = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
-authors = ["Benoit Pasquier", "Jan Weidner"]
+authors = ["Benoit Pasquier", "David Gustavsson", "Jan Weidner"]
 version = "1.6.0"
 
 [deps]
