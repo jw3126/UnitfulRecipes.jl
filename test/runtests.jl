@@ -1,5 +1,5 @@
 using Test, Unitful, Plots
-using Unitful: m, s, cm, DimensionError
+using Unitful: m, s, cm, °, rad, DimensionError
 using UnitfulRecipes
 
 testfile = "test.png"
@@ -111,7 +111,7 @@ end
 end
 
 @testset "With functions" begin
-    x, y = randn(3), randn(3)
+    x, y, α = randn(3), randn(3), (1:5)
     @testset "plot(f, x) / plot(x, f)" begin
         f(x) = x^2
         @test plot(  f, x*m) isa Plots.Plot
@@ -119,6 +119,9 @@ end
         g(x) = x*m # If the unit comes from the function only then it throws
         @test_throws DimensionError plot(x, g) isa Plots.Plot
         @test_throws DimensionError plot(g, x) isa Plots.Plot
+        # a matrix of small angles should give positive `sin`s (otherwise they are probably
+        # interpreted as radians)
+        @test all(>(0), yseries(plot(sin, [α*° 2α*°])))
     end
     @testset "plot(x, y, f)" begin
         f(x,y) = x*y
@@ -128,12 +131,15 @@ end
         g(x,y) = x*y*m # If the unit comes from the function only then it throws
         @test_throws DimensionError plot(x, y, g) isa Plots.Plot
     end
-    @testset "plot(f, u)" begin
+    @testset "plot(f, u) / plot(u, f)" begin
         f(x) = x^2
         pl = plot(x*m, f.(x*m))
         @test plot!(pl, f, m) isa Plots.Plot
         @test_throws DimensionError plot!(pl, f, s) isa Plots.Plot
         pl = plot(f, m)
+        @test xguide(pl) == string(m)
+        @test yguide(pl) == string(m^2)
+        pl = plot(m, f)
         @test xguide(pl) == string(m)
         @test yguide(pl) == string(m^2)
         g(x) = exp(x/(3m))
@@ -324,9 +330,27 @@ end
                                     ), testfile)
 end
 
-# https://github.com/jw3126/UnitfulRecipes.jl/issues/60
 @testset "Start with empty plot" begin
     plt = plot()
     plot!(plt, (1:3)m)
     @test yguide(plt) == "m"
+end
+
+@testset "Array of arrays" begin
+    α, β = (1:5), (0.1:0.1:0.5)
+    @test yguide(plot(x->x^2, [α*m])) == string(m^2)
+    plt = plot(sin, [α*°])
+    @test xguide(plt) == string(°)
+    # sin(x) > 0 for all x in (1:5)°, but <0 for some x in (1:5)rad
+    @test all(>(0), yseries(plt))
+    plt = plot(sin, [α*°, β*°])
+    @test xguide(plt) == string(°)
+    @test all(>(0), yseries(plt))
+    plt = plot(sin, AbstractArray{Unitful.Quantity}[α*°, β*rad])
+    @test xguide(plt) == string(°)
+    @test all(>(0), yseries(plt))
+    plt = plot(AbstractArray{Unitful.Quantity}[α*°, β*rad], sin)
+    @test xguide(plt) == string(°)
+    @test all(>(0), yseries(plt))
+    @test_throws DimensionError plot(x->x^2, AbstractArray{Unitful.Quantity}[α*m, α*s])
 end
