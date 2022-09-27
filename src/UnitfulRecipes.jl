@@ -1,5 +1,14 @@
 module UnitfulRecipes
 
+@warn """
+UnitfulRecipes has been deprecated.
+
+```
+using Plots, Unitful
+```
+should suffice to plot unitful data.
+"""
+
 using RecipesBase
 using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
 export @P_str
