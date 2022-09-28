@@ -4,7 +4,7 @@ module UnitfulRecipes
 UnitfulRecipes has been deprecated.
 
 ```
-using Plots, Unitful
+using Unitful, Plots
 ```
 should suffice to plot unitful data.
 """
