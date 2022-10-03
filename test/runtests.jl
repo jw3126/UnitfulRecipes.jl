@@ -1,5 +1,6 @@
 using Test, Unitful, Plots
-using Unitful: m, s, cm, DimensionError
+using Unitful: m, s, cm, mm, DimensionError
+using Unitful: dBm, dB, dBV, V, Hz, B, MHz
 using UnitfulRecipes
 
 testfile = "test.png"
@@ -329,4 +330,76 @@ end
     plt = plot()
     plot!(plt, (1:3)m)
     @test yguide(plt) == "m"
+end
+
+@testset "LogScaled plots" begin
+    x, y, dbv, v = randn(3)*dBm, randn(3)*dB, rand(3)*dBV, rand(3)V
+    
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "dBm"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "dB"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+        plot(x, dbv)
+        @test yseries(plot!(x, v)) ≈ ustrip(uconvert.(u"dBV", v))
+        plot(x, v)
+        @test yseries(plot!(x, dbv)) ≈ ustrip(uconvert.(u"V", dbv))
+    end
+
+    @testset "labels" begin
+        @test xguide(plot(x, y, xlabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, ylabel=P"hello")) == "hello"
+        @test xguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+    end  
+end
+
+@testset "mixed Log units" begin
+    x, y, x1, y1 = randn(3)*dB/Hz, randn(3)*dB*m, rand(3)*B/MHz, rand(3)*B*cm
+    
+    @testset "no keyword argument" begin
+        dbhz = Sys.isapple() ? "dB Hz⁻¹" : "dB Hz^-1"  # expect fancy exponent or not?
+        @test xguide(plot(x,y)) ==  dbhz
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "dB m"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+    end
+    @testset "plot!" begin
+        plot(x, y)
+        @test xseries(plot!(x1, y)) ≈ ustrip(ustrip(uconvert.(u"dB/Hz", x1)))
+        @test yseries(plot!(x1, y1)) ≈ ustrip(ustrip(uconvert.(u"dB*m", y1)))
+    end
+
+end
+
+@testset "fullunit methods test" begin
+    @test @inferred(fullunit(1m^2)) === m^2
+    @test @inferred(fullunit(1dB)) === dB
+    @test @inferred(fullunit(1dBm)) === dBm
+    @test @inferred(fullunit(1dB*m)) === dB*m
+    @test @inferred(fullunit(typeof(1m^2))) === m^2
+    @test @inferred(fullunit(typeof(1dB))) === dB
+    @test @inferred(fullunit(typeof(1dBm))) === dBm
+    @test @inferred(fullunit(typeof(1dB*m))) === dB*m
+    @test @inferred(fullunit(Float64)) === NoUnits
+    @test @inferred(fullunit(Union{typeof(1m^2),Missing})) === m^2
+    @test @inferred(fullunit(Union{Float64,Missing})) === NoUnits
+    @test @inferred(fullunit(missing)) === missing
+    @test @inferred(fullunit(Missing)) === missing
+end
+
+@testset "uwstrip tests" begin
+     # ustrip with type and unit arguments
+     @test @inferred(uwstrip(m, 3.0m)) === 3.0
+     @test @inferred(uwstrip(m, 2mm)) === 1//500
+     @test @inferred(uwstrip(mm, 3.0m)) === 3000.0
+     @test @inferred(uwstrip(NoUnits, 3.0m/1.0m)) === 3.0
+     @test @inferred(uwstrip(NoUnits, 3.0m/1.0cm)) === 300.0
+     @test @inferred(uwstrip(cm, missing)) === missing
+     @test @inferred(uwstrip(NoUnits, missing)) === missing
+     @test_throws DimensionError uwstrip(NoUnits, 3.0m/1.0s)
 end

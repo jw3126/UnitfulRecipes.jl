@@ -1,8 +1,10 @@
 module UnitfulRecipes
 
 using RecipesBase
-using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units
+using Unitful: Quantity, unit, ustrip, Unitful, dimension, Units, MixedUnits
 export @P_str
+
+include("UnitfulWrapper.jl")
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
 
@@ -21,11 +23,11 @@ end
 Main recipe
 ==========#
 
-@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity}}
+@recipe function f(::Type{T}, x::T) where T <: AbstractArray{<:Union{Missing,<:Quantity, <:LogScaled}}
     axisletter = plotattributes[:letter]   # x, y, or z
     if (axisletter == :z) &&
         get(plotattributes, :seriestype, :nothing) ∈ clims_types
-        u = get(plotattributes, :zunit, unit(eltype(x)))
+        u = get(plotattributes, :zunit, fullunit(eltype(x)))
         ustripattribute!(plotattributes, :clims, u)
         append_unit_if_needed!(plotattributes, :colorbar_title, u)
     end
@@ -41,7 +43,7 @@ function fixaxis!(attr, x, axisletter)
     axisunit = Symbol(axisletter, :unit)   # xunit, yunit, zunit
     axis = Symbol(axisletter, :axis)       # xaxis, yaxis, zaxis
     # Get the unit
-    u = pop!(attr, axisunit, unit(eltype(x)))
+    u = pop!(attr, axisunit, fullunit(eltype(x)))
     # If the subplot already exists with data, get its unit
     sp = get(attr, :subplot, 1)
     if sp ≤ length(attr[:plot_object]) && attr[:plot_object].n > 0
@@ -66,14 +68,14 @@ function fixaxis!(attr, x, axisletter)
     fixmarkersize!(attr)
     fixlinecolor!(attr)
     # Strip the unit
-    ustrip.(u, x)
+    uwstrip.(u, x)
 end
 
 # Recipe for (x::AVec, y::AVec, z::Surface) types
 const AVec = AbstractVector
 const AMat{T} = AbstractArray{T,2} where T
 @recipe function f(x::AVec, y::AVec, z::AMat{T}) where T <: Quantity
-    u = get(plotattributes, :zunit, unit(eltype(z)))
+    u = get(plotattributes, :zunit, fullunit(eltype(z)))
     ustripattribute!(plotattributes, :clims, u)
     z = fixaxis!(plotattributes, z, :z)
     append_unit_if_needed!(plotattributes, :colorbar_title, u)
@@ -81,34 +83,34 @@ const AMat{T} = AbstractArray{T,2} where T
 end
 
 # Recipe for vectors of vectors
-@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity}}}
+@recipe function f(::Type{T}, x::T) where T <: AbstractVector{<:AbstractVector{<:Union{Missing,<:Quantity, <:LogScaled}}}
     axisletter = plotattributes[:letter]   # x, y, or z
     [fixaxis!(plotattributes, x, axisletter) for x in x]
 end
 
-# Recipe for bare units
-@recipe function f(::Type{T}, x::T) where T <: Units
+# Recipe for bare Union{Units, MixedUnits}
+@recipe function f(::Type{T}, x::T) where T <: Union{Units, MixedUnits}
     primary := false
     Float64[]*x
 end
 
 # Recipes for functions
-@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(f::Function, x::T) where T <: AVec{<:Union{Missing,<:Quantity,<:LogScaled}}
     x, f.(x)
 end
-@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity,<:LogScaled}}
     x, f.(x)
 end
-@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::T, y::AVec, f::Function) where T <: AVec{<:Union{Missing,<:Quantity,<:LogScaled}}
     x, y, f.(x',y)
 end
-@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity}}
+@recipe function f(x::AVec, y::T, f::Function) where T <: AVec{<:Union{Missing,<:Quantity,<:LogScaled}}
     x, y, f.(x',y)
 end
-@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity}}, T2<:AVec{<:Union{Missing,<:Quantity}}}
+@recipe function f(x::T1, y::T2, f::Function) where {T1<:AVec{<:Union{Missing,<:Quantity,<:LogScaled}}, T2<:AVec{<:Union{Missing,<:Quantity,<:LogScaled}}}
     x, y, f.(x',y)
 end
-@recipe function f(f::Function, u::Units)
+@recipe function f(f::Function, u::Union{Units, MixedUnits})
     uf = UnitFunction(f, [u])
     recipedata = RecipesBase.apply_recipe(plotattributes, uf)
     (_, xmin, xmax) = recipedata[1].args
@@ -129,7 +131,7 @@ uf(3, 2) == f(3u"m", 2u"m"^2) == 7u"m^2"
 """
 struct UnitFunction <: Function
     f::Function
-    u::Vector{Units}
+    u::Vector{T} where T<: Union{Units, MixedUnits}
 end
 (f::UnitFunction)(args...) = f.f((args .* f.u)...)
 
@@ -180,8 +182,8 @@ fixlinecolor!(attr) = ustripattribute!(attr, :line_z)
 function ustripattribute!(attr, key)
     if haskey(attr, key)
         v = attr[key]
-        u = unit(eltype(v))
-        attr[key] = ustrip.(u, v)
+        u = fullunit(eltype(v))
+        attr[key] = uwstrip.(u, v)
         return u
     else
         return Unitful.NoUnits
@@ -192,7 +194,7 @@ function ustripattribute!(attr, key, u)
     if haskey(attr, key)
         v = attr[key]
         if eltype(v) <: Quantity
-            attr[key] = ustrip.(u, v)
+            attr[key] = uwstrip.(u, v)
         end
     end
     u
@@ -240,7 +242,7 @@ end
 Append unit to labels when appropriate
 =====================================#
 
-function append_unit_if_needed!(attr, key, u::Unitful.Units)
+function append_unit_if_needed!(attr, key, u::T) where T<:Union{MixedUnits, Units}
     label = get(attr, key, nothing)
     append_unit_if_needed!(attr, key, label, u)
 end
