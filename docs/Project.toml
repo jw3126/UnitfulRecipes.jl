@@ -6,3 +6,4 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
 Documenter = "0.27"
+Plots = "< 1.34.2"
