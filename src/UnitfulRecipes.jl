@@ -6,6 +6,17 @@ export @P_str
 
 const clims_types = (:contour, :contourf, :heatmap, :surface)
 
+function __init__()
+    @warn """
+    UnitfulRecipes has been deprecated.
+
+    ```
+    using Unitful, Plots
+    ```
+    should suffice to plot unitful data.
+    """
+end
+
 #==========
 Main recipe
 ==========#

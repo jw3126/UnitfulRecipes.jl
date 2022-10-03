@@ -2,6 +2,14 @@
 
 *for plotting data with units seamlessly in Julia*
 
+## Deprecation
+
+As of Plots.jl `v1.34.2`, UnitfulRecipes is included in Plots, and is no longer
+necessary. Instead, loading both Unitful.jl and Plots.jl suffices to plot
+unitful data.
+
+## Archive
+
 <p>
   <a href="https://jw3126.github.io/UnitfulRecipes.jl/stable/">
     <img src="https://img.shields.io/github/workflow/status/jw3126/UnitfulRecipes.jl/Documentation?style=for-the-badge&label=Documentation&logo=Read%20the%20Docs&logoColor=white">
