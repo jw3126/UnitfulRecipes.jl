@@ -330,3 +330,30 @@ end
     plot!(plt, (1:3)m)
     @test yguide(plt) == "m"
 end
+
+@testset "LogScaled plots" begin
+    x, y, dbv, v = randn(3)*u"dBm", randn(3)*u"dB", rand(3)*u"dBV", rand(3)*u"V"
+    
+    @testset "no keyword argument" begin
+        @test xguide(plot(x,y)) == "dBm"
+        @test xseries(plot(x,y)) ≈ ustrip.(x)
+        @test yguide(plot(x,y)) == "dB"
+        @test yseries(plot(x,y)) ≈ ustrip.(y)
+        plot(x, dbv)
+        @test yseries(plot!(x, v)) ≈ ustrip(uconvert.(u"dBV", v))
+        plot(x, v)
+        @test yseries(plot!(x, dbv)) ≈ ustrip(uconvert.(u"V", dbv))
+    end
+
+    @testset "labels" begin
+        @test xguide(plot(x, y, xlabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, ylabel=P"hello")) == "hello"
+        @test xguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dBm)"
+        @test xguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+        @test yguide(plot(x, y, xlabel= "hello", ylabel= "hello")) == "hello (dB)"
+        @test yguide(plot(x, y, xlabel=P"hello", ylabel=P"hello")) == "hello"
+    end
+    
+end
